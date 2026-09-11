@@ -125,3 +125,82 @@ export function getZiweiIndex(day: number, bureauNum: number): number {
 export function getTianfuIndex(ziweiIndex: number): number {
   return (4 - ziweiIndex + 12) % 12;
 }
+
+/**
+ * 尋找特定星曜所在的宮位索引 (包含主星與昌曲等)
+ */
+export function findStarPalaceIndex(chart: ChartData, starName: string): number {
+  for (let i = 0; i < chart.palaces.length; i++) {
+    const p = chart.palaces[i];
+    if (p.majorStars.some(s => s.name === starName)) return i;
+    if (p.minorStars.some(s => s.name === starName)) return i;
+  }
+  return -1;
+}
+
+/**
+ * 計算單一宮位的玄空四化（宮干飛星落點與沖宮）
+ */
+export function calculatePalaceFlyingSihua(chart: ChartData, palaceIndex: number): PalaceFlyingSihua {
+  const fromPalace = chart.palaces[palaceIndex];
+  const stem = fromPalace.heavenStem;
+  const sihuaStars = SIHUA_TABLE[stem] || { lu: '', quan: '', ke: '', ji: '' };
+
+  const createTarget = (sihua: SihuaType, star: string): FlyingSihuaTarget => {
+    const targetPalaceIdx = findStarPalaceIndex(chart, star);
+    const targetPalaceName = targetPalaceIdx >= 0 ? chart.palaces[targetPalaceIdx].name : '未知';
+    const isSelf = targetPalaceIdx === palaceIndex;
+    
+    let clashPalaceIndex: number | undefined = undefined;
+    let clashPalaceName: string | undefined = undefined;
+    if (sihua === '忌' && targetPalaceIdx >= 0) {
+      clashPalaceIndex = (targetPalaceIdx + 6) % 12;
+      clashPalaceName = chart.palaces[clashPalaceIndex].name;
+    }
+
+    return {
+      sihua,
+      star,
+      toPalaceIndex: targetPalaceIdx,
+      toPalaceName: targetPalaceName,
+      isSelf,
+      clashPalaceIndex,
+      clashPalaceName
+    };
+  };
+
+  return {
+    fromPalaceIndex: palaceIndex,
+    fromPalaceName: fromPalace.name,
+    fromPalaceStem: stem,
+    targets: {
+      lu: createTarget('祿', sihuaStars.lu),
+      quan: createTarget('權', sihuaStars.quan),
+      ke: createTarget('科', sihuaStars.ke),
+      ji: createTarget('忌', sihuaStars.ji)
+    }
+  };
+}
+
+/**
+ * 計算全盤十二宮的所有自化
+ */
+export function calculateAllSelfSihua(chart: ChartData): { palaceIndex: number; palaceName: string; star: string; sihua: SihuaType }[] {
+  const result: { palaceIndex: number; palaceName: string; star: string; sihua: SihuaType }[] = [];
+  for (let i = 0; i < chart.palaces.length; i++) {
+    const p = chart.palaces[i];
+    const fs = calculatePalaceFlyingSihua(chart, i);
+    (['lu', 'quan', 'ke', 'ji'] as const).forEach(key => {
+      const t = fs.targets[key];
+      if (t.isSelf) {
+        result.push({
+          palaceIndex: i,
+          palaceName: p.name,
+          star: t.star,
+          sihua: t.sihua
+        });
+      }
+    });
+  }
+  return result;
+}

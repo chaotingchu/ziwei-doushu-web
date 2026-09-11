@@ -58,3 +58,26 @@ export interface ChartData {
   currentBigLimitIndex: number;// 當前目標大限命宮所在的宮位索引
   currentFlowYearIndex: number;// 當前目標流年命宮所在的宮位索引
 }
+
+// 玄空飛星四化落點資訊
+export interface FlyingSihuaTarget {
+  sihua: SihuaType;       // 祿, 權, 科, 忌
+  star: string;          // 化出的星曜
+  toPalaceIndex: number; // 飛入的宮位索引 (0~11)
+  toPalaceName: string;  // 飛入的宮位名稱 (如: 子女宮)
+  isSelf: boolean;       // 是否為自化 (飛入本宮)
+  clashPalaceIndex?: number; // 若為忌，沖的對宮索引
+  clashPalaceName?: string;  // 若為忌，沖的對宮名稱
+}
+
+export interface PalaceFlyingSihua {
+  fromPalaceIndex: number;
+  fromPalaceName: string;
+  fromPalaceStem: string;
+  targets: {
+    lu: FlyingSihuaTarget;
+    quan: FlyingSihuaTarget;
+    ke: FlyingSihuaTarget;
+    ji: FlyingSihuaTarget;
+  };
+}

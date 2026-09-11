@@ -1,5 +1,5 @@
 import { ChartData, ChartType, Palace } from '../core/types';
-import { PALACE_NAMES } from '../core/ziwei_rules';
+import { PALACE_NAMES, calculatePalaceFlyingSihua, calculateAllSelfSihua } from '../core/ziwei_rules';
 import marriageData from './data/marriage.json';
 import wealthData from './data/wealth.json';
 import careerData from './data/career.json';
@@ -40,6 +40,7 @@ export const STAR_PLAIN_DESC: Record<string, { role: string; strength: string; w
 
 export type AspectKey =
   | 'destiny'   // 先天命格與格局
+  | 'xuankong'  // 🔀 玄空飛星（情之所鍾・因果盲點）
   | 'marriage'  // 婚姻感情
   | 'wealth'    // 財運求財
   | 'career'    // 事業升遷
@@ -59,6 +60,14 @@ export interface AspectResult {
   targetPalaceName: string;
   targetBranch: string;
   starsSummary: string[];
+  palaceSihuaSummary?: {
+    stem: string;
+    flyOut: string[];     // 本宮飛出四化 (祿權科忌)
+    selfSihua: string[];   // 本宮自化星曜
+    clashTarget?: string;  // 忌沖哪一宮
+    clashedBy?: string[];  // 哪些外宮化忌沖本宮
+    plainStory?: string;   // 👑 飛星大白話因果解讀
+  };
   plainSummary: string; // 👑 通俗大白話總結
   keyHighlights: string[];
   detailedExplanations: string[];
@@ -139,6 +148,49 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     '煞曜神煞：' + (badStars.length > 0 ? badStars.join('、') : '三方清吉無重煞'),
     sihuaStars.length > 0 ? '四化引動：' + sihuaStars.join('、') : '本宮無引動四化'
   ];
+
+  // 計算該目標宮位的玄空飛星四化與自化
+  const palaceFlying = calculatePalaceFlyingSihua(chart, targetIdx);
+  const pTargets = palaceFlying.targets;
+  const selfSihuaList: string[] = [];
+  (['lu', 'quan', 'ke', 'ji'] as const).forEach(k => {
+    if (pTargets[k].isSelf) {
+      selfSihuaList.push(`${pTargets[k].star}自化${pTargets[k].sihua}`);
+    }
+  });
+
+  // 檢查全盤是否有其他宮位化忌沖本宮
+  const clashedByList: string[] = [];
+  for (let i = 0; i < chart.palaces.length; i++) {
+    if (i === targetIdx) continue;
+    const otherFlying = calculatePalaceFlyingSihua(chart, i);
+    if (otherFlying.targets.ji.clashPalaceIndex === targetIdx) {
+      clashedByList.push(`【${otherFlying.fromPalaceName}】化忌入【${otherFlying.targets.ji.toPalaceName}】來沖`);
+    }
+  }
+
+  // 產生生動的飛星因果大白話串聯
+  let plainStory = `【${palace.name}】的善緣好處情願給【${pTargets.lu.toPalaceName}】（化祿），最想展現掌控力與爭取話語權在【${pTargets.quan.toPalaceName}】（化權），最在乎斯文體面名聲在【${pTargets.ke.toPalaceName}】（化科）；但最放心不下、最容易鑽牛角尖牽掛的地方落在【${pTargets.ji.toPalaceName}】（化忌），因而連帶沖擊了【${pTargets.ji.clashPalaceName}】！`;
+  if (selfSihuaList.length > 0) {
+    plainStory += ` 此外本宮逢【${selfSihuaList.join('、')}】，代表此處能量容易自尋煩惱或不自覺流失，需靠後天自律守成。`;
+  }
+  if (clashedByList.length > 0) {
+    plainStory += ` 特別注意：本宮受到${clashedByList.join('、')}，代表此面向若遇瓶頸，常是被這些外來人事所牽累，需有防人之心。`;
+  }
+
+  const palaceSihuaSummary = {
+    stem: palace.heavenStem,
+    flyOut: [
+      `祿入【${pTargets.lu.toPalaceName}】(${pTargets.lu.star})`,
+      `權入【${pTargets.quan.toPalaceName}】(${pTargets.quan.star})`,
+      `科入【${pTargets.ke.toPalaceName}】(${pTargets.ke.star})`,
+      `忌入【${pTargets.ji.toPalaceName}】(${pTargets.ji.star})`
+    ],
+    selfSihua: selfSihuaList,
+    clashTarget: pTargets.ji.clashPalaceName,
+    clashedBy: clashedByList,
+    plainStory
+  };
 
   // 1. 婚姻感情
   if (aspect === 'marriage') {
@@ -567,7 +619,7 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     }
 
   // 13. 整體格局 (destiny)
-  } else {
+  } else if (aspect === 'destiny') {
     title = modeText + ' 先天格局與綜合評述';
     scopeDesc = mode === 'original' ? '綜合三方四正、主星分佈、五行局氣數與命中吉凶格局之總綱。' : mode === 'big_limit' ? '總結這十年 (' + bigLimitRangeStr + '歲) 的行運主軸與人生轉折關鍵方向。' : '統整 ' + chart.targetYear + ' 年度的運勢高低潮與乘風破浪之操作心法。';
     const lifeMajor = chart.palaces[chart.originalLifeIndex].majorStars.map(s => s.name);
@@ -632,6 +684,63 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
 
     detailedExplanations.push('【講義論命總綱】：講義第十章指出「性格決定命運，知命者乃在順應天時、發揮天賦，遇吉不驕、臨險知止。調整性格有賴修行，打破命定唯在覺悟與自律」。');
     advice.push('💡【白話開運提醒】：人生沒有永遠的逆境，也沒有不費吹灰之力的順境。了解自己的星盤，就是為了在對的時間做對的決定！');
+  } else if (aspect === 'xuankong') {
+    // 🔀 玄空飛星（情之所鍾・動態因果與執念）
+    title = '玄空四化飛星（後天心念、情之所鍾與因果受災點）';
+    scopeDesc = '生年四化為「先天業力與配備」，宮干玄空四化則為「後天主觀執著、心力付出與動態連鎖反應」。命宮化忌為命主最看不開的「癡情忌」，化忌所入之宮並非最傷，對宮「被沖破」才是後天受害重災區！';
+
+    // 1. 命宮玄空四化
+    const lifePalaceFlying = calculatePalaceFlyingSihua(chart, chart.originalLifeIndex);
+    const lifeTargets = lifePalaceFlying.targets;
+
+    plainSummary = `命主情之所鍾在【${lifeTargets.lu.toPalaceName}】（心甘情願付出${lifeTargets.lu.star}祿），但後天最大執念與盲點落在【${lifeTargets.ji.toPalaceName}】（${lifeTargets.ji.star}癡情忌）。此執著如同雙刃劍，直接沖擊震盪了【${lifeTargets.ji.clashPalaceName}】！`;
+
+    keyHighlights.push(`命宮發射干【${lifePalaceFlying.fromPalaceStem}】：祿入【${lifeTargets.lu.toPalaceName}】、權入【${lifeTargets.quan.toPalaceName}】、科入【${lifeTargets.ke.toPalaceName}】、忌入【${lifeTargets.ji.toPalaceName}】`);
+    keyHighlights.push(`致命盲點【癡情忌】：化忌入【${lifeTargets.ji.toPalaceName}】，反向直沖【${lifeTargets.ji.clashPalaceName}】！`);
+
+    detailedExplanations.push(`【命主情之所鍾（命祿入${lifeTargets.lu.toPalaceName}）】：命宮宮干${lifePalaceFlying.fromPalaceStem}使${lifeTargets.lu.star}化祿飛入${lifeTargets.lu.toPalaceName}。講義指出：命祿入之宮，代表命主一生最心甘情願為該領域奉獻，不計代價與回報，在此處最容易結善緣、獲得歡喜心。`);
+    detailedExplanations.push(`【命主掌控舞台（命權入${lifeTargets.quan.toPalaceName}）】：${lifeTargets.quan.star}化權飛入${lifeTargets.quan.toPalaceName}。代表命主在${lifeTargets.quan.toPalaceName}展現出最強的支配慾望與企圖心，想要說了算、不服輸，是命主後天奮力爭取主導權的焦點。`);
+    detailedExplanations.push(`【命主體面名聲（命科入${lifeTargets.ke.toPalaceName}）】：${lifeTargets.ke.star}化科飛入${lifeTargets.ke.toPalaceName}。命主在此宮位講究體面斯文、重名譽聲望，容易得到該宮位人事的心靈慰藉與斯文貴人相挺。`);
+    detailedExplanations.push(`【命主癡情忌與盲點（命忌入${lifeTargets.ji.toPalaceName}）】：命宮使${lifeTargets.ji.star}化忌飛入${lifeTargets.ji.toPalaceName}。講義專論特別強調：「命宮化忌入某宮，是為癡情忌，代表命主一生的心念、牽掛與執著焦點所在，看似關心，實則因愛之深而責之切，往往造成沉重心理負擔而弄巧成拙」。`);
+    detailedExplanations.push(`【骨牌受災點（直沖${lifeTargets.ji.clashPalaceName}）】：忌入${lifeTargets.ji.toPalaceName}，力量直接放射沖破對宮【${lifeTargets.ji.clashPalaceName}】！這是全盤最嚴重的後天動態漏洞。往往因為命主過度緊盯${lifeTargets.ji.toPalaceName}，反而導致${lifeTargets.ji.clashPalaceName}的資源耗損、甚至無心經營而全面潰敗。`);
+
+    // 2. 核心三宮（夫妻、財帛、官祿）飛忌追查
+    const spouseP = chart.palaces.find(p => p.name === '夫妻宮');
+    if (spouseP) {
+      const spouseFlying = calculatePalaceFlyingSihua(chart, spouseP.index);
+      detailedExplanations.push(`【夫妻宮飛忌溯源】：夫妻宮干【${spouseFlying.fromPalaceStem}】化忌入【${spouseFlying.targets.ji.toPalaceName}】（沖【${spouseFlying.targets.ji.clashPalaceName}】）。講義解析：若夫妻化忌入命宮，是配偶強加壓力於我；若化忌入財帛或田宅，婚姻裂痕多因錢財家產理念不合所致。`);
+    }
+
+    const wealthP = chart.palaces.find(p => p.name === '財帛宮');
+    if (wealthP) {
+      const wealthFlying = calculatePalaceFlyingSihua(chart, wealthP.index);
+      detailedExplanations.push(`【財帛宮飛忌溯源（財庫漏點）】：財帛宮干【${wealthFlying.fromPalaceStem}】化忌入【${wealthFlying.targets.ji.toPalaceName}】（沖【${wealthFlying.targets.ji.clashPalaceName}】）。此為命主錢財最主要的後天損耗流向，需特別留意在此領域投資或借貸引發的財務黑洞。`);
+    }
+
+    const careerP = chart.palaces.find(p => p.name === '官祿宮');
+    if (careerP) {
+      const careerFlying = calculatePalaceFlyingSihua(chart, careerP.index);
+      detailedExplanations.push(`【官祿宮飛忌溯源（事業瓶頸）】：官祿宮干【${careerFlying.fromPalaceStem}】化忌入【${careerFlying.targets.ji.toPalaceName}】（沖【${careerFlying.targets.ji.clashPalaceName}】）。代表事業打拼過程中最容易被牽絆或感到心力交瘁的環節。`);
+    }
+
+    // 3. 自化盤點
+    const allSelf = calculateAllSelfSihua(chart);
+    if (allSelf.length > 0) {
+      const selfNames = allSelf.map(s => `【${s.palaceName}】${s.star}自化${s.sihua}`).join('、');
+      keyHighlights.push(`盤中自化現象：${selfNames}`);
+      detailedExplanations.push(`【全盤自化現象解析】：命盤中出現${selfNames}。講義第十九章指出：自化祿代表福報容易不自覺流失享受掉；自化忌則代表自尋煩惱、自我內耗消散，雖然對外宮殺傷力小，但容易缺乏堅持的恆心，需靠自律守成。`);
+    } else {
+      detailedExplanations.push('【無自化穩定格局】：命盤各宮無明顯同宮自化現象，各宮氣數能穩定留存，不輕易無端散佚。');
+    }
+
+    // 尖銳盲點與修為指引
+    blindSpots.push(`【癡情忌致命盲點】：您對【${lifeTargets.ji.toPalaceName}】有過強的掌控欲與患得患失，常常以「我都是為了你好」的強加心態去要求對方或該領域，反而逼得對方窒息想逃！`);
+    blindSpots.push(`【連鎖沖擊受災】：因為您對${lifeTargets.ji.toPalaceName}過度投入心力與執念，導致【${lifeTargets.ji.clashPalaceName}】長期被忽視或慘遭沖破，這是您人生後天最容易破產或翻車的盲區。`);
+
+    improvements.push(`學會對【${lifeTargets.ji.toPalaceName}】學會「手放開」與尊重邊界，把要求別人的心力收回來提升自己。`);
+    improvements.push(`全力防守補強被沖破的【${lifeTargets.ji.clashPalaceName}】，設定具體的備援保護機制，不要因小失大。`);
+
+    advice.push(`💡【玄空解鎖】：玄空四化是「心念與因果的顯化」，它不是宿命。當您覺察並放下對【${lifeTargets.ji.toPalaceName}】的執取心，被沖的【${lifeTargets.ji.clashPalaceName}】自然回穩，後天運勢便能翻轉！`);
   }
 
   // 自動根據坐守主星、煞星與面向，提煉「個性致命傷與改進指引（講壞的、講真話）」
@@ -678,6 +787,17 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     improvements.push('學會柔軟圓融，得理且饒人；凡事多留退路給別人，以柔克剛。');
   }
 
+  // 針對該宮位玄空飛星與自化，自動補強深度斷語
+  if (palaceSihuaSummary.selfSihua.length > 0) {
+    keyHighlights.push(`本宮自化：${palaceSihuaSummary.selfSihua.join('、')}`);
+    detailedExplanations.push(`【本宮自化現象】：本宮宮干使${palaceSihuaSummary.selfSihua.join('、')}。講義指出：自化為本宮氣數自我耗散或自我消解，在此領域容易有「自尋煩惱」或「成果容易無端流失」之象，需以意志力守成。`);
+  }
+  if (palaceSihuaSummary.clashedBy && palaceSihuaSummary.clashedBy.length > 0) {
+    keyHighlights.push(`⚠️ 外宮化忌來沖本宮：${palaceSihuaSummary.clashedBy.join('；')}`);
+    detailedExplanations.push(`【外在引爆點（受外宮飛忌沖破）】：受到${palaceSihuaSummary.clashedBy.join('；')}。講義專論指出：此為該面向遭遇危機或波折的「幕後元凶」，問題根源往往不是本宮自己，而是被這些外來宮位的人事物牽連拖累！`);
+  }
+  detailedExplanations.push(`【本宮飛星去向】：本宮干【${palaceSihuaSummary.stem}】${palaceSihuaSummary.flyOut.join('、')}。化忌所入之處為此宮位最牽掛付出之所，直沖【${palaceSihuaSummary.clashTarget}】需防連鎖損耗。`);
+
   const masterInfo = (shengyanGuidance as any)[aspect];
 
   return {
@@ -686,6 +806,7 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     targetPalaceName,
     targetBranch: branch,
     starsSummary,
+    palaceSihuaSummary,
     plainSummary,
     keyHighlights,
     detailedExplanations,

@@ -15,6 +15,7 @@ const emit = defineEmits<{
 
 const aspectsList: { key: AspectKey; label: string; icon: string }[] = [
   { key: 'destiny', label: '整體格局', icon: '🌟' },
+  { key: 'xuankong', label: '玄空飛星', icon: '🔀' },
   { key: 'marriage', label: '婚姻感情', icon: '💑' },
   { key: 'wealth', label: '財運求財', icon: '💰' },
   { key: 'career', label: '事業升遷', icon: '💼' },
@@ -60,14 +61,7 @@ const analysis = computed(() => {
         <p class="scope-desc">{{ analysis.scopeDesc }}</p>
       </div>
 
-      <!-- 星曜格局摘要條 -->
-      <div class="summary-pills">
-        <div v-for="(sum, sIdx) in analysis.starsSummary" :key="sIdx" class="pill">
-          {{ sum }}
-        </div>
-      </div>
-
-      <!-- 👑 通俗大白話總結 (一般人一秒看懂) -->
+      <!-- 1. 👑 通俗大白話總結 (最上方！一般人一秒看懂，越白話越前面) -->
       <div v-if="analysis.plainSummary" class="section-box plain-summary-box">
         <div class="plain-summary-header">
           <span class="plain-badge">👑 通俗白話解讀</span>
@@ -76,17 +70,43 @@ const analysis = computed(() => {
         <p class="plain-text">{{ analysis.plainSummary }}</p>
       </div>
 
-      <!-- 重點提要 (Highlights) -->
-      <div v-if="analysis.keyHighlights.length > 0" class="section-box highlights-box">
-        <h4 class="section-title">📌 核心特徵與格局氣數</h4>
-        <ul class="clean-list">
-          <li v-for="(hl, hIdx) in analysis.keyHighlights" :key="hIdx">
-            {{ hl }}
-          </li>
-        </ul>
+      <!-- 2. 🔀 宮位專屬：玄空飛星與自化追蹤卡 (含白話因果故事) -->
+      <div v-if="analysis.palaceSihuaSummary" class="palace-sihua-box">
+        <div class="sihua-box-header">
+          <span class="sihua-box-title">🔀 宮干【{{ analysis.palaceSihuaSummary.stem }}】玄空飛星與自化連鎖</span>
+          <span class="sihua-box-badge">動態因果與受災點</span>
+        </div>
+        <div class="sihua-box-body">
+          <!-- 💡 飛星因果大白話串聯 (最前面先看懂故事) -->
+          <div v-if="analysis.palaceSihuaSummary.plainStory" class="sihua-plain-story">
+            <span class="story-badge">💡 飛星因果白話解讀：</span>
+            <span class="story-text">{{ analysis.palaceSihuaSummary.plainStory }}</span>
+          </div>
+
+          <div class="fly-out-row">
+            <span class="row-label">本宮向外發射：</span>
+            <div class="fly-out-tags">
+              <span v-for="(fo, fIdx) in analysis.palaceSihuaSummary.flyOut" :key="fIdx" class="fly-tag-pill">
+                {{ fo }}
+              </span>
+            </div>
+          </div>
+          <div v-if="analysis.palaceSihuaSummary.selfSihua.length > 0" class="self-row">
+            <span class="row-label">本宮自化消散：</span>
+            <span class="self-highlight">
+              ⚠️ {{ analysis.palaceSihuaSummary.selfSihua.join('、') }}（主氣數自我內耗、成果容易莫名流失）
+            </span>
+          </div>
+          <div v-if="analysis.palaceSihuaSummary.clashedBy && analysis.palaceSihuaSummary.clashedBy.length > 0" class="clashed-by-row">
+            <span class="row-label">⚠️ 外部受災沖擊：</span>
+            <span class="clash-highlight">
+              遭 {{ analysis.palaceSihuaSummary.clashedBy.join('、') }}（此為該面向遭遇阻力或危機的幕後元凶！）
+            </span>
+          </div>
+        </div>
       </div>
 
-      <!-- ⚠️ 致命性格盲點與潛在隱患 (講壞的、講缺點、不粉飾太平) -->
+      <!-- 3. ⚠️ 致命性格盲點與潛在隱患 (講壞的、講缺點、不粉飾太平) -->
       <div v-if="analysis.blindSpots && analysis.blindSpots.length > 0" class="section-box blind-spots-box">
         <div class="alert-header">
           <span class="blind-badge">⚠️ 致命性格盲點與隱患剖析</span>
@@ -99,7 +119,7 @@ const analysis = computed(() => {
         </ul>
       </div>
 
-      <!-- 🛠️ 具體自我改進與修為指引 (需要自己改進的部分) -->
+      <!-- 4. 🛠️ 具體自我改進與修為指引 (需要自己改進的部分) -->
       <div v-if="analysis.improvements && analysis.improvements.length > 0" class="section-box improvements-box">
         <div class="improve-header">
           <span class="improve-badge">🛠️ 自我修為與具體改進功課</span>
@@ -112,7 +132,33 @@ const analysis = computed(() => {
         </ul>
       </div>
 
-      <!-- 詳解文章 (自 20 份 Word 講義抽取轉譯) -->
+      <!-- 5. 💡 指引與建議 (Advice) -->
+      <div v-if="analysis.advice.length > 0" class="section-box advice-box">
+        <h4 class="section-title">💡 趨吉避凶指引與行運建議</h4>
+        <ul class="clean-list">
+          <li v-for="(adv, aIdx) in analysis.advice" :key="aIdx">
+            {{ adv }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- 6. 核心特徵與技術星曜提要 (進入專業技術分析) -->
+      <div class="summary-pills">
+        <div v-for="(sum, sIdx) in analysis.starsSummary" :key="sIdx" class="pill">
+          {{ sum }}
+        </div>
+      </div>
+
+      <div v-if="analysis.keyHighlights.length > 0" class="section-box highlights-box">
+        <h4 class="section-title">📌 核心特徵與格局氣數</h4>
+        <ul class="clean-list">
+          <li v-for="(hl, hIdx) in analysis.keyHighlights" :key="hIdx">
+            {{ hl }}
+          </li>
+        </ul>
+      </div>
+
+      <!-- 7. 📖 詳解文章 (技術專論深入斷語，放後面) -->
       <div class="section-box detail-box">
         <h4 class="section-title">📖 講義專論深度斷語解說</h4>
         <div v-if="analysis.detailedExplanations.length > 0" class="paragraphs">
@@ -123,16 +169,6 @@ const analysis = computed(() => {
         <div v-else class="empty-tip">
           該宮星曜組合平穩，請參酌對宮與三方四正之吉凶星氣數綜合論斷。
         </div>
-      </div>
-
-      <!-- 指引與建議 (Advice) -->
-      <div v-if="analysis.advice.length > 0" class="section-box advice-box">
-        <h4 class="section-title">💡 趨吉避凶指引與行運建議</h4>
-        <ul class="clean-list">
-          <li v-for="(adv, aIdx) in analysis.advice" :key="aIdx">
-            {{ adv }}
-          </li>
-        </ul>
       </div>
 
       <!-- 🌸 聖嚴法師心靈指引與佛法正信開示 (Gem專用智庫直達) -->
@@ -270,7 +306,7 @@ const analysis = computed(() => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .pill {
@@ -280,6 +316,103 @@ const analysis = computed(() => {
   padding: 6px 12px;
   font-size: 13px;
   color: #e2e8f0;
+}
+
+/* 宮位專屬飛星與自化追蹤盒 */
+.palace-sihua-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #4338ca;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+}
+
+.sihua-box-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px dashed #334155;
+  padding-bottom: 6px;
+  margin-bottom: 8px;
+}
+
+.sihua-box-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+.sihua-box-badge {
+  font-size: 11px;
+  color: #c7d2fe;
+  background: #3730a3;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.sihua-box-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.fly-out-row, .self-row, .clashed-by-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.row-label {
+  color: #94a3b8;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.fly-out-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fly-tag-pill {
+  background: rgba(55, 48, 163, 0.35);
+  border: 1px solid #6366f1;
+  color: #e0e7ff;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+
+.self-highlight {
+  color: #fde047;
+  font-weight: 600;
+}
+
+.clash-highlight {
+  color: #f87171;
+  font-weight: 600;
+}
+
+.sihua-plain-story {
+  margin-top: 6px;
+  background: rgba(30, 41, 59, 0.7);
+  border-left: 3px solid #fbbf24;
+  border-radius: 0 6px 6px 0;
+  padding: 8px 12px;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.story-badge {
+  color: #fbbf24;
+  font-weight: 700;
+  margin-right: 4px;
+}
+
+.story-text {
+  color: #f1f5f9;
 }
 
 .section-box {
