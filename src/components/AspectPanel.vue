@@ -207,6 +207,30 @@ const analysis = computed(() => {
             </a>
           </div>
         </div>
+
+        <!-- 🤖 聖嚴法師佛法智慧 AI 對話 (Gemini Gem 專屬智庫直達) -->
+        <div class="gemini-gem-card">
+          <div class="gem-header">
+            <div class="gem-title-wrap">
+              <span class="gem-icon">✨</span>
+              <span class="gem-title">有疑問想深入請教？與「聖嚴法師佛法智庫 AI」一對一對話</span>
+            </div>
+            <span class="gem-badge">Gemini Gem 智庫</span>
+          </div>
+          <p class="gem-desc">
+            若對星盤盲點、佛法因果或心靈卡關有不理解之處，歡迎點擊下方進入專屬 AI 對話室。此智庫完整匯入了聖嚴法師《法鼓全集》與正信佛法教導，能隨時針對您的具體困惑進行溫暖、慈悲的解惑對話。
+          </p>
+          <a
+            href="https://gemini.google.com/gem/14Ctk6nL941tvvbGxQ4FIx5wph_98HtAh?usp=sharing"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="gem-action-btn"
+          >
+            <span class="btn-icon">💬</span>
+            <span class="btn-text">開啟聖嚴法師佛學 AI 對話室</span>
+            <span class="btn-arrow">↗</span>
+          </a>
+        </div>
       </div>
     </div>
   </div>
@@ -722,5 +746,88 @@ const analysis = computed(() => {
 .link-arrow {
   color: #94a3b8;
   font-size: 14px;
+}
+
+/* 🤖 Gemini Gem 專屬 AI 對話卡片 */
+.gemini-gem-card {
+  margin-top: 18px;
+  background: linear-gradient(135deg, rgba(30, 27, 75, 0.95) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 15px rgba(147, 51, 234, 0.2);
+}
+
+.gem-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.gem-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.gem-icon {
+  font-size: 16px;
+  color: #facc15;
+}
+
+.gem-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f1f5f9;
+}
+
+.gem-badge {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.gem-desc {
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.65;
+  margin: 0 0 14px 0;
+}
+
+.gem-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #9333ea 0%, #6366f1 100%);
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(147, 51, 234, 0.4);
+  transition: all 0.2s ease;
+}
+
+.gem-action-btn:hover {
+  background: linear-gradient(135deg, #a855f7 0%, #4f46e5 100%);
+  box-shadow: 0 4px 16px rgba(147, 51, 234, 0.6);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.gem-action-btn .btn-arrow {
+  font-size: 15px;
+  transition: transform 0.2s;
+}
+
+.gem-action-btn:hover .btn-arrow {
+  transform: translate(2px, -2px);
 }
 </style>
