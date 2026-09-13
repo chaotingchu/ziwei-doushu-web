@@ -585,6 +585,7 @@ function formatPlainContent(text: string, showStars: boolean): string {
   margin: 0;
   font-weight: 500;
   letter-spacing: 0.2px;
+  white-space: pre-line;
 }
 
 .section-title {

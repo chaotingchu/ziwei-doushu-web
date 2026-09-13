@@ -511,21 +511,41 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     const hasTanlangKongjie = (originalLifePalace.majorStars.some(s => s.name === '貪狼') && hasKongJie) || (bodyPalace.majorStars.some(s => s.name === '貪狼') && hasKongJie);
     const hasTianji = originalLifePalace.majorStars.some(s => s.name === '天機') || bodyPalace.majorStars.some(s => s.name === '天機');
 
-    // 1. 白話總結：嚴格對照「命主命盤真實現況」，絕不生搬硬套！
+    // 1. 白話總結：全面剖析「仙佛天命（天刑）」與「前世冤親債主業障（陰煞）」，講真話、不避諱
     if (mode === 'original') {
-      if (tianxingInLifeOrBody) {
-        plainSummary = '【仙佛天命・前世宿緣】：你的【' + (tianxingInLife ? '命宮' : '身宮') + '】逢【天刑星】坐守！講義第三章明確記載：「天刑之靈電與仙佛有因緣，或為仙佛轉世，又或為仙佛受業報而落入凡塵；天刑單守命身宮，常具有特殊感應能力，不乏具神通力量者，且容易留有前世記憶。」你天生直覺敏銳、富有俠義正義感，靈性極高；但講義亦直言警告：天刑入命身者性格過硬、說話太衝易惹官非是非，必須以正信佛法柔和修心，切忌自傲。';
-      } else if (tianxingPalace) {
-        plainSummary = '【仙佛執法職志在' + tianxingPalace.name + '】：你的天刑星並未入命宮或身宮，而是坐入【' + tianxingPalace.name + '】。這代表你的個人性格並非通靈或仙佛下凡體質，而是將天刑的「嚴明因果、原則紀律與責任感」投射在【' + tianxingPalace.name + '】之事務上。在此領域你講求原則、眼裡容不下沙子，但也需防過度嚴苛引發人際摩擦或官非是非。';
-      } else if (hasHuagai || hasKongJie || hasTianliangKongjie || hasTanlangKongjie || hasTianji) {
-        plainSummary = '【玄學仙骨與哲學慧根】：你的命宮／身宮雖無天刑，但見【' + (hasHuagai ? '華蓋' : hasTianliangKongjie ? '天梁會空劫' : hasTanlangKongjie ? '貪狼會空劫' : hasTianji ? '天機星' : '地空地劫') + '】！講義指出這代表你思想超脫世俗名利，對人生哲理、身心靈或玄學五術有著深刻的理解與悟性，適合將智慧用於啟發他人、化解煩惱。';
-      } else {
-        plainSummary = '【腳踏實地修心白話說給你聽】：講義第八章強調「福德宮是前世因所造的今生果，修行是調整性格、打破命定唯一的方法」。你的命盤在靈性上講求務實，不需要追求神秘感應或盲目通靈；把人做好、孝順父母、慈悲待人，就是最踏實的因果功德護城河。';
+      const summaries: string[] = [];
+
+      // (A) 陰煞星：前世業障與冤親債主討債宮位（講義第三章最重磅篇幅）
+      if (yinshaInLife || yinshaInBody) {
+        summaries.push(`【前世業力・冤親債主入${yinshaInLife ? '命宮' : '身宮'}】：講義第三章明確記載：「陰煞主一生中的業障所在，也就是前世所欠、今生須償還的債，陰煞被定位為小人星，其實就是冤親債主！」陰煞坐入命身，代表前世帶來較深的心靈疑障與因果牽絆，容易生性多疑、瞻前顧後、容易自尋煩惱，甚至身體虛弱時容易精神恍惚或做惡夢。講義強調此格「最需要修行」，凡事光明磊落、多做不求回報的陰德布施，以「甘願受、歡喜還」的心態面對人際是非，才能化解冤親債主糾纏。`);
+      } else if (yinshaPalace) {
+        const ysDesc = (religionData.yinsha.palaces as any)[yinshaPalace.name] || '主該宮位容易莫名遇小人暗害或前世相欠債。';
+        summaries.push(`【前世因果討債點在【${yinshaPalace.name}】】：你的陰煞星坐入【${yinshaPalace.name}】。講義第三章明示：「陰煞所在的宮位，就是此生來向你討債的宮位，是先天因果業力帶來的煩惱焦點！」在【${yinshaPalace.name}】領域你容易覺得付出多卻被拖累、自覺選錯人或受小人暗算（${ysDesc}）。明白這是前世相欠債，此處就是你今生修忍辱與化解宿怨的「修行道場」。`);
       }
+
+      // (B) 天刑星：仙佛天命與神界執法宿命
+      if (tianxingInLifeOrBody) {
+        summaries.push(`【仙佛天命・神界執法宿命】：你的【${tianxingInLife ? '命宮' : '身宮'}】逢【天刑星】坐守！講義第三章明確記載：「天刑之靈電與仙佛有因緣，或為仙佛轉世，又或為仙佛受業報而落入凡塵；天刑單守命身宮，常具有特殊感應能力，不乏具神通力量者，且容易留有前世記憶。」你天生直覺敏銳、富有俠義正義感；但講義亦嚴厲警告：天刑入命身者性格過硬、說話太衝易惹官非是非，必須以正信佛法柔和修心修口，切莫仗著感應自傲。`);
+      } else if (tianxingPalace) {
+        summaries.push(`【仙佛紀律執法在【${tianxingPalace.name}】】：天刑星坐入【${tianxingPalace.name}】。代表你將天刑的「嚴明因果、原則紀律與責任感」投射在此宮位，眼裡容不下沙子、講求絕對公平，但也需防過度嚴苛引發人際摩擦或官司是非。`);
+      }
+
+      // (C) 慧根玄骨（華蓋、空劫、天梁、天機）
+      if (hasHuagai || hasKongJie || hasTianliangKongjie || hasTanlangKongjie || hasTianji) {
+        const comboName = hasHuagai ? '華蓋' : hasTianliangKongjie ? '天梁會空劫' : hasTanlangKongjie ? '貪狼會空劫' : hasTianji ? '天機星' : '地空地劫';
+        summaries.push(`【玄學仙骨與哲學慧根】：命身見【${comboName}】！講義第十章指出「命逢空劫者名利空虛，修行可減其凶；天梁貪狼見空劫者看透世俗，是為僧道仙風之命」。你對人生真諦、哲理佛法與玄學五術具有極高的領悟力，智慧不落世俗。`);
+      }
+
+      // 若命盤平穩
+      if (summaries.length === 0) {
+        summaries.push('【腳踏實地修心白話說給你聽】：講義第八章強調「福德宮是前世因所造的今生果，修行是調整性格、打破命定唯一的方法」。你的命盤在靈性上講求務實，不需要追求神秘感應或盲目通靈；把人做好、孝順父母、慈悲待人，就是最踏實的因果功德護城河。');
+      }
+
+      plainSummary = summaries.join('\n\n');
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年性靈因果大白話】：此步大限行運引動因果氣數。講義指出大限行至玄學或煞曜宮位時，是化解業債、沉澱心性、提升智慧的黃金十年。非常適合研讀正信佛法、修習紫微易經或布施利他，以修行的慈悲心化解世俗的奔波與摩擦。';
+      plainSummary = '【這十年性靈因果大白話】：此步大限行運引動因果氣數。講義指出大限行至玄學、煞曜或陰煞宮位時，是化解宿世業債、沉澱心性、提升智慧的黃金十年。非常適合研讀正信佛法、修持經咒或布施利他，以修行的慈悲心化解世俗的奔波與摩擦。';
     } else {
-      plainSummary = '【今年開運祈福白話】：' + chart.targetYear + '年心靈磁場轉化。講義提醒流年行運逢煞曜或陰煞時，心思容易敏感浮躁，切忌去磁場不良場所；在家中安奉祖先、清淨心念、多行一善，即能逢凶化吉。';
+      plainSummary = '【今年開運祈福白話】：' + chart.targetYear + '年心靈磁場轉化。講義提醒流年行運逢煞曜或陰煞時，心思容易敏感浮躁、易招小人暗害；切忌去磁場不良場所，在家中安奉祖先、多行暗德布施，即能逢凶化吉。';
     }
 
     // 2. 核心提要（Highlights）
