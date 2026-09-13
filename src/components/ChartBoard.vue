@@ -263,7 +263,7 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
                   v-for="m in getPalace(cellIdx)?.minorStars"
                   :key="m.name"
                   class="star-badge minor"
-                  :class="{ lucun: m.name === '祿存' }"
+                  :class="{ lucun: m.name === '祿存', peach: m.name === '紅鸞' || m.name === '天喜' }"
                 >
                   {{ m.name }}
                   <span v-if="getSelfSihuaForStar(cellIdx, m.name)" class="sihua-tag self" :class="getSelfSihuaForStar(cellIdx, m.name)">
@@ -637,6 +637,11 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
 
 .star-badge.minor.lucun {
   color: #facc15;
+  font-weight: 700;
+}
+
+.star-badge.minor.peach {
+  color: #f472b6;
   font-weight: 700;
 }
 

@@ -19,6 +19,7 @@ const day = ref(18);
 const hour = ref(12);
 const gender = ref<Gender>('男');
 const targetYear = ref(2026);
+const isCalculating = ref(false);
 
 const hoursList = [
   { value: 0, label: '子時 (23:00 - 01:00)' },
@@ -36,6 +37,8 @@ const hoursList = [
 ];
 
 function submit() {
+  if (isCalculating.value) return;
+  isCalculating.value = true;
   emit('calculate', {
     year: Number(year.value),
     month: Number(month.value),
@@ -44,6 +47,9 @@ function submit() {
     gender: gender.value,
     targetYear: Number(targetYear.value)
   });
+  setTimeout(() => {
+    isCalculating.value = false;
+  }, 600);
 }
 </script>
 
@@ -53,25 +59,34 @@ function submit() {
       <span class="icon">☯</span>
       <div>
         <h2>紫微斗數在線排盤與多面向深度分析系統</h2>
-        <span class="subtitle">（單頁即時分析・純前端計算・尊崇正統中州古訣・支援三盤聯動）</span>
+        <span class="subtitle">（單頁即時分析・純前端計算・尊崇正統中州古訣・支援三盤聯動・<strong class="hint-highlight">請輸入國曆生日</strong>）</span>
       </div>
     </div>
 
     <form @submit.prevent="submit" class="form-grid">
       <div class="form-group">
-        <label>公曆出生年份</label>
+        <label>
+          公曆 (國曆) 出生年
+          <span class="badge-solar">國曆</span>
+        </label>
         <input type="number" v-model="year" min="1900" max="2100" required />
       </div>
 
       <div class="form-group">
-        <label>月份</label>
+        <label>
+          國曆月份
+          <span class="badge-solar">國曆</span>
+        </label>
         <select v-model="month">
           <option v-for="m in 12" :key="m" :value="m">{{ m }} 月</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label>日期</label>
+        <label>
+          國曆日期
+          <span class="badge-solar">國曆</span>
+        </label>
         <select v-model="day">
           <option v-for="d in 31" :key="d" :value="d">{{ d }} 日</option>
         </select>
@@ -104,8 +119,10 @@ function submit() {
       </div>
 
       <div class="form-group btn-group">
-        <button type="submit" class="btn-submit">
-          ⚡ 立即排盤
+        <button type="submit" class="btn-submit" :class="{ loading: isCalculating }" :disabled="isCalculating">
+          <span v-if="isCalculating" class="spinner">↻</span>
+          <span v-else>⚡</span>
+          {{ isCalculating ? '排盤計算中…' : '立即排盤' }}
         </button>
       </div>
     </form>
@@ -219,5 +236,43 @@ function submit() {
 .btn-submit:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(217, 119, 6, 0.5);
+}
+
+.btn-submit.loading {
+  background: linear-gradient(135deg, #b45309 0%, #92400e 100%);
+  opacity: 0.9;
+  cursor: wait;
+}
+
+.btn-submit .spinner {
+  display: inline-block;
+  animation: spin 0.8s linear infinite;
+  margin-right: 4px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.badge-solar {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  margin-left: 4px;
+}
+
+.hint-highlight {
+  color: #fbbf24;
+  font-weight: 700;
 }
 </style>

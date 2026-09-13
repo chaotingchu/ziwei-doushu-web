@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { ChartData, ChartType } from '../core/types';
 import { AspectKey, analyzeAspect } from '../analysis/aspect_analyzer';
 
@@ -33,6 +33,27 @@ const aspectsList: { key: AspectKey; label: string; icon: string }[] = [
 const analysis = computed(() => {
   return analyzeAspect(props.chart, props.mode, props.currentAspect);
 });
+
+// 是否顯示專業星曜名稱 (預設為 false: 純通俗大白話模式)
+const showStarNames = ref(false);
+
+// 去除星曜前綴以呈現純通俗解說
+function formatPlainContent(text: string, showStars: boolean): string {
+  if (showStars) return text;
+  // 去除 【針對xx星】、【xx星之隱患】、【xx星】、【xx星修持致命盲點】等術語
+  return text
+    .replace(/^針對【[^】]+】：/, '')
+    .replace(/^【[^】]+之隱患】：/, '')
+    .replace(/^【[^】]+盲點】：/, '')
+    .replace(/^【[^】]+功課】：/, '')
+    .replace(/^【[^】]+改進】：/, '')
+    .replace(/^【[^】]+衝破】：/, '')
+    .replace(/^【[^】]+暗纏】：/, '')
+    .replace(/^【[^】]+干擾】：/, '')
+    .replace(/^【[^】]+業障】：/, '')
+    .replace(/^【[^】]+化剋】：/, '')
+    .replace(/^【無主星借對宮】：/, '自身立場容易隨波逐流：');
+}
 </script>
 
 <template>
@@ -55,7 +76,18 @@ const analysis = computed(() => {
     <div class="analysis-card">
       <div class="card-header">
         <div class="title-wrap">
-          <h3 class="analysis-title">{{ analysis.title }}</h3>
+          <div class="title-and-toggle">
+            <h3 class="analysis-title">{{ analysis.title }}</h3>
+            <button
+              class="toggle-mode-btn"
+              :class="{ active: showStarNames }"
+              @click="showStarNames = !showStarNames"
+              :title="showStarNames ? '目前為專業星曜對照，點擊切換純白話模式' : '目前為通俗易懂模式，點擊切換專業星曜模式'"
+            >
+              <span class="toggle-icon">{{ showStarNames ? '🔍' : '🌟' }}</span>
+              <span class="toggle-label">{{ showStarNames ? '專業星曜模式 (已開啟)' : '切換專業星曜解說' }}</span>
+            </button>
+          </div>
           <span class="palace-badge">對應宮位：【{{ analysis.targetPalaceName }}】坐【{{ analysis.targetBranch }}宮】</span>
         </div>
         <p class="scope-desc">{{ analysis.scopeDesc }}</p>
@@ -109,12 +141,21 @@ const analysis = computed(() => {
       <!-- 3. ⚠️ 致命性格盲點與潛在隱患 (講壞的、講缺點、不粉飾太平) -->
       <div v-if="analysis.blindSpots && analysis.blindSpots.length > 0" class="section-box blind-spots-box">
         <div class="alert-header">
-          <span class="blind-badge">⚠️ 致命性格盲點與隱患剖析</span>
-          <span class="blind-sub">直言不諱・客觀剖析劣勢與陷阱</span>
+          <div class="header-left">
+            <span class="blind-badge">⚠️ 致命性格盲點與隱患剖析</span>
+            <span class="blind-sub">{{ showStarNames ? '專業星曜對照・直言不諱客觀剖析' : '大白話解讀・直言不諱客觀剖析劣勢' }}</span>
+          </div>
+          <button
+            class="section-toggle-btn"
+            @click="showStarNames = !showStarNames"
+            :title="showStarNames ? '點擊隱藏星曜名稱' : '點擊顯示對應星曜'"
+          >
+            {{ showStarNames ? '切換通俗白話' : '✨ 顯示星曜對照' }}
+          </button>
         </div>
         <ul class="clean-list alert-list">
           <li v-for="(bs, bIdx) in analysis.blindSpots" :key="bIdx">
-            {{ bs }}
+            {{ formatPlainContent(bs, showStarNames) }}
           </li>
         </ul>
       </div>
@@ -122,12 +163,21 @@ const analysis = computed(() => {
       <!-- 4. 🛠️ 具體自我改進與修為指引 (需要自己改進的部分) -->
       <div v-if="analysis.improvements && analysis.improvements.length > 0" class="section-box improvements-box">
         <div class="improve-header">
-          <span class="improve-badge">🛠️ 自我修為與具體改進功課</span>
-          <span class="improve-sub">化解盲點・打破慣性與命運循環的關鍵行動</span>
+          <div class="header-left">
+            <span class="improve-badge">🛠️ 自我修為與具體改進功課</span>
+            <span class="improve-sub">{{ showStarNames ? '專業星曜對照・化解盲點打破命運循環' : '大白話解說・化解盲點與具體行動' }}</span>
+          </div>
+          <button
+            class="section-toggle-btn"
+            @click="showStarNames = !showStarNames"
+            :title="showStarNames ? '點擊隱藏星曜名稱' : '點擊顯示對應星曜'"
+          >
+            {{ showStarNames ? '切換通俗白話' : '✨ 顯示星曜對照' }}
+          </button>
         </div>
         <ul class="clean-list improve-list">
           <li v-for="(imp, iIdx) in analysis.improvements" :key="iIdx">
-            {{ imp }}
+            {{ formatPlainContent(imp, showStarNames) }}
           </li>
         </ul>
       </div>
@@ -299,8 +349,15 @@ const analysis = computed(() => {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 8px;
+}
+
+.title-and-toggle {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
 }
 
 .analysis-title {
@@ -308,6 +365,34 @@ const analysis = computed(() => {
   font-weight: 800;
   color: #fbbf24;
   margin: 0;
+}
+
+.toggle-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid #475569;
+  color: #cbd5e1;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggle-mode-btn:hover {
+  border-color: #fbbf24;
+  color: #fbbf24;
+  background: rgba(51, 65, 85, 0.8);
+}
+
+.toggle-mode-btn.active {
+  background: linear-gradient(135deg, rgba(217, 119, 6, 0.25) 0%, rgba(180, 83, 9, 0.15) 100%);
+  border-color: #f59e0b;
+  color: #fef08a;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
 }
 
 .palace-badge {
@@ -509,9 +594,34 @@ const analysis = computed(() => {
 .alert-header, .improve-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 12px;
   flex-wrap: wrap;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.section-toggle-btn {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e2e8f0;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.section-toggle-btn:hover {
+  border-color: #f59e0b;
+  color: #fbbf24;
+  background: rgba(30, 41, 59, 0.8);
 }
 
 .blind-badge {

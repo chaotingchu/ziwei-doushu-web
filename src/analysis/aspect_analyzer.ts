@@ -215,6 +215,10 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
         if (docStar && docStar.general) detailedExplanations.push(...docStar.general.slice(0, 3));
       });
     }
+    if (minorStars.includes('紅鸞') || minorStars.includes('天喜')) {
+      const peachStars = minorStars.filter(s => s === '紅鸞' || s === '天喜').join('與');
+      keyHighlights.push(`🌸 夫妻宮逢【${peachStars}】：正桃花正曜同度，天生自帶異性緣與浪漫魅力，感情互動甜蜜，逢流年大限吉化極利結髮連理。`);
+    }
     advice.push(badStars.length > 0 ? '💡【白話開運提醒】：本宮見【' + badStars.join('、') + '】小磨練。相處切忌「爭一時輸贏」，生氣時先冷靜半小時再去溝通，感情反而更甜。' : '💡【白話開運提醒】：宮位平穩，日常多製造專屬儀式感，互為最強後盾。');
 
   // 2. 財運求財

@@ -232,6 +232,16 @@ export function calculateChart(
   const huagaiBranch = huagaiMap[cal.yearBranch] || '辰';
   palaces[EARTH_BRANCHES.indexOf(huagaiBranch)].minorStars.push({ name: '華蓋', brightness: '廟', type: 'minor' });
 
+  // 4. 婚姻感情核心吉曜：紅鸞、天喜
+  // 紅鸞：卯宮起子年，逆數至生年地支（公式: (3 - yearBranchIdx + 12) % 12）
+  const yearBranchIdx = EARTH_BRANCHES.indexOf(cal.yearBranch);
+  const hongluanIdx = (3 - yearBranchIdx + 12) % 12;
+  palaces[hongluanIdx].minorStars.push({ name: '紅鸞', brightness: '廟', type: 'minor' });
+
+  // 天喜：紅鸞之對宮（沖紅鸞之位，即 (hongluanIdx + 6) % 12）
+  const tianxiIdx = (hongluanIdx + 6) % 12;
+  palaces[tianxiIdx].minorStars.push({ name: '天喜', brightness: '廟', type: 'minor' });
+
   // 7. 計算目標流年與虛歲
   const currentAge = targetYear - year + 1; // 虛歲
   // 目標流年地支
