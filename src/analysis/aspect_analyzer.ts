@@ -219,6 +219,14 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       const peachStars = minorStars.filter(s => s === '紅鸞' || s === '天喜').join('與');
       keyHighlights.push(`🌸 夫妻宮逢【${peachStars}】：正桃花正曜同度，天生自帶異性緣與浪漫魅力，感情互動甜蜜，逢流年大限吉化極利結髮連理。`);
     }
+    if (minorStars.includes('天姚') || minorStars.includes('咸池')) {
+      const pStars = minorStars.filter(s => s === '天姚' || s === '咸池').join('、');
+      keyHighlights.push(`🌹 夫妻宮逢【${pStars}】：次桃花與風情曜會聚，伴侶極富幽默感與社交魅力，感情重視情調浪漫，亦需謹守分寸防桃色波折。`);
+    }
+    if (badStars.includes('孤辰') || badStars.includes('寡宿')) {
+      const gStars = badStars.filter(s => s === '孤辰' || s === '寡宿').join('、');
+      keyHighlights.push(`🕯️ 夫妻宮逢【${gStars}】：主獨立清高，感情上容易各忙各的或聚少離多，宜主動製造生活共鳴與深度交心。`);
+    }
     advice.push(badStars.length > 0 ? '💡【白話開運提醒】：本宮見【' + badStars.join('、') + '】小磨練。相處切忌「爭一時輸贏」，生氣時先冷靜半小時再去溝通，感情反而更甜。' : '💡【白話開運提醒】：宮位平穩，日常多製造專屬儀式感，互為最強後盾。');
 
   // 2. 財運求財
@@ -439,9 +447,9 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
 
     if (mode === 'original') {
       if (healthMajor.length > 0) {
-        plainSummary = '【先天體質白話說給你聽】：你的疾厄宮坐守【' + healthMajor.join('、') + '】。講義第十七章指出：「疾厄宮顯示身體基因遺傳與體質強弱，各主星五行各有專屬臟腑。」坐守' + healthMajor[0] + '者，需注重對應之五行器官代謝（如脾胃消化、呼吸系統或心血管），避免長期過勞與熬夜。';
+        plainSummary = '【先天體質白話說給你聽】：你的先天體質特質鮮明，顯示身體基因遺傳與臟腑機能強弱有專屬重點。平時需特別注重代謝循環（如脾胃消化、呼吸系統或心血管調節），維持良好運動習慣，避免長期過勞與熬夜積累成疾。';
       } else {
-        plainSummary = '【先天體質白話說給你聽】：你的疾厄宮無主星（借對宮父母宮星曜參看）。這代表你的先天體質彈性大、適應力強，無特定頑疾基因；但抵抗力易受生活節奏與作息起伏影響，規律作息是最佳良方。';
+        plainSummary = '【先天體質白話說給你聽】：你的先天體質彈性大、適應力強，無特定頑疾基因；但抵抗力易受生活節奏與作息起伏影響，保持心情愉悅與規律作息是最佳良方。';
       }
     } else if (mode === 'big_limit') {
       plainSummary = '【這十年養生大白話】：此步大限疾厄宮提醒你：身體代謝開始進入新階段，少吃油膩重鹹、多喝水少喝含糖飲料，注重腸胃與睡眠品質是這十年的長壽密碼。';
@@ -628,7 +636,7 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     scopeDesc = mode === 'original' ? '綜合三方四正、主星分佈、五行局氣數與命中吉凶格局之總綱。' : mode === 'big_limit' ? '總結這十年 (' + bigLimitRangeStr + '歲) 的行運主軸與人生轉折關鍵方向。' : '統整 ' + chart.targetYear + ' 年度的運勢高低潮與乘風破浪之操作心法。';
     const lifeMajor = chart.palaces[chart.originalLifeIndex].majorStars.map(s => s.name);
     if (mode === 'original') {
-      plainSummary = lifeMajor.length > 0 ? '【白話說給你聽】：你是個「' + lifeMajor.map(m => STAR_PLAIN_DESC[m]?.role || m).join('+') + '」特質鮮明的人！內在性格有「' + lifeMajor.map(m => STAR_PLAIN_DESC[m]?.strength || '堅定信念').join('，且') + '」，人生只要方向確定、發揮天賦優勢，不畏短期挫折，終能成就一番格局。' : '【白話說給你聽】：你的先天命宮無主星，屬於「借宮安星、大器晚成、處事圓融」的格局。你最大的優點是適應力快、海納百川，擅長在不同環境中找到生存之道！';
+      plainSummary = lifeMajor.length > 0 ? '【白話說給你聽】：你是個「' + lifeMajor.map(m => (STAR_PLAIN_DESC[m]?.role || m).replace(/星/g, '')).join('兼具') + '」特質鮮明的人！內在性格有「' + lifeMajor.map(m => STAR_PLAIN_DESC[m]?.strength || '堅定信念').join('，且') + '」，人生只要方向確定、發揮天賦優勢，不畏短期挫折，終能成就一番格局。' : '【白話說給你聽】：你屬於「處事圓融、海納百川、大器晚成」的格局。你最大的優點是適應力極快、能屈能伸，擅長在不同環境與團隊中找到最佳生存之道！';
     } else if (mode === 'big_limit') {
       plainSummary = '【這十年人生大白話】：此步大限主星得力，是人生承上啟下的核心大運。這十年專注打磨你的核心專業與個人品牌，累積的資源將讓你下一個十年更輕鬆！';
     } else {
@@ -789,6 +797,11 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
   if (badStars.includes('天刑')) {
     blindSpots.push('【天刑化剋】：性格孤傲不群、原則過硬缺乏彈性，容易因說話太衝招致是非甚至官非刑傷。');
     improvements.push('學會柔軟圓融，得理且饒人；凡事多留退路給別人，以柔克剛。');
+  }
+  if (badStars.includes('孤辰') || badStars.includes('寡宿')) {
+    const starName = badStars.includes('孤辰') ? '孤辰' : '寡宿';
+    blindSpots.push(`【${starName}孤寂】：個性較為獨立清冷、防備心強不輕易敞開心扉，相處時容易習慣性冷戰或逃避深度溝通，易感孤立無援。`);
+    improvements.push('主動表達內心感受與脆弱，多參與正向聚會，打開心門接納他人的善意與支持。');
   }
 
   // 針對該宮位玄空飛星與自化，自動補強深度斷語

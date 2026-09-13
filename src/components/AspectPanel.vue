@@ -93,7 +93,7 @@ function formatPlainContent(text: string, showStars: boolean): string {
         <p class="scope-desc">{{ analysis.scopeDesc }}</p>
       </div>
 
-      <!-- 1. 👑 通俗大白話總結 (最上方！一般人一秒看懂，越白話越前面) -->
+      <!-- 1. 👑 通俗大白話總結 (一秒看懂，完全無術語) -->
       <div v-if="analysis.plainSummary" class="section-box plain-summary-box">
         <div class="plain-summary-header">
           <span class="plain-badge">👑 通俗白話解讀</span>
@@ -102,48 +102,12 @@ function formatPlainContent(text: string, showStars: boolean): string {
         <p class="plain-text">{{ analysis.plainSummary }}</p>
       </div>
 
-      <!-- 2. 🔀 宮位專屬：玄空飛星與自化追蹤卡 (含白話因果故事) -->
-      <div v-if="analysis.palaceSihuaSummary" class="palace-sihua-box">
-        <div class="sihua-box-header">
-          <span class="sihua-box-title">🔀 宮干【{{ analysis.palaceSihuaSummary.stem }}】玄空飛星與自化連鎖</span>
-          <span class="sihua-box-badge">動態因果與受災點</span>
-        </div>
-        <div class="sihua-box-body">
-          <!-- 💡 飛星因果大白話串聯 (最前面先看懂故事) -->
-          <div v-if="analysis.palaceSihuaSummary.plainStory" class="sihua-plain-story">
-            <span class="story-badge">💡 飛星因果白話解讀：</span>
-            <span class="story-text">{{ analysis.palaceSihuaSummary.plainStory }}</span>
-          </div>
-
-          <div class="fly-out-row">
-            <span class="row-label">本宮向外發射：</span>
-            <div class="fly-out-tags">
-              <span v-for="(fo, fIdx) in analysis.palaceSihuaSummary.flyOut" :key="fIdx" class="fly-tag-pill">
-                {{ fo }}
-              </span>
-            </div>
-          </div>
-          <div v-if="analysis.palaceSihuaSummary.selfSihua.length > 0" class="self-row">
-            <span class="row-label">本宮自化消散：</span>
-            <span class="self-highlight">
-              ⚠️ {{ analysis.palaceSihuaSummary.selfSihua.join('、') }}（主氣數自我內耗、成果容易莫名流失）
-            </span>
-          </div>
-          <div v-if="analysis.palaceSihuaSummary.clashedBy && analysis.palaceSihuaSummary.clashedBy.length > 0" class="clashed-by-row">
-            <span class="row-label">⚠️ 外部受災沖擊：</span>
-            <span class="clash-highlight">
-              遭 {{ analysis.palaceSihuaSummary.clashedBy.join('、') }}（此為該面向遭遇阻力或危機的幕後元凶！）
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. ⚠️ 致命性格盲點與潛在隱患 (講壞的、講缺點、不粉飾太平) -->
+      <!-- 2. ⚠️ 致命性格盲點與潛在隱患 (講壞的、講缺點、不粉飾太平) -->
       <div v-if="analysis.blindSpots && analysis.blindSpots.length > 0" class="section-box blind-spots-box">
         <div class="alert-header">
           <div class="header-left">
             <span class="blind-badge">⚠️ 致命性格盲點與隱患剖析</span>
-            <span class="blind-sub">{{ showStarNames ? '專業星曜對照・直言不諱客觀剖析' : '大白話解讀・直言不諱客觀剖析劣勢' }}</span>
+            <span class="blind-sub">{{ showStarNames ? '專業星曜對照・直言不諱客觀剖析' : '大白話解讀・直言不諱客觀剖析劣勢與陷阱' }}</span>
           </div>
           <button
             class="section-toggle-btn"
@@ -160,7 +124,7 @@ function formatPlainContent(text: string, showStars: boolean): string {
         </ul>
       </div>
 
-      <!-- 4. 🛠️ 具體自我改進與修為指引 (需要自己改進的部分) -->
+      <!-- 3. 🛠️ 具體自我改進與修為指引 (需要自己改進的部分) -->
       <div v-if="analysis.improvements && analysis.improvements.length > 0" class="section-box improvements-box">
         <div class="improve-header">
           <div class="header-left">
@@ -182,9 +146,9 @@ function formatPlainContent(text: string, showStars: boolean): string {
         </ul>
       </div>
 
-      <!-- 5. 💡 指引與建議 (Advice) -->
+      <!-- 4. 💡 指引與建議 (Advice) -->
       <div v-if="analysis.advice.length > 0" class="section-box advice-box">
-        <h4 class="section-title">💡 趨吉避凶指引與行運建議</h4>
+        <h4 class="section-title">💡 趨吉避凶指引與生活開運建議</h4>
         <ul class="clean-list">
           <li v-for="(adv, aIdx) in analysis.advice" :key="aIdx">
             {{ adv }}
@@ -192,36 +156,90 @@ function formatPlainContent(text: string, showStars: boolean): string {
         </ul>
       </div>
 
-      <!-- 6. 核心特徵與技術星曜提要 (進入專業技術分析) -->
-      <div class="summary-pills">
-        <div v-for="(sum, sIdx) in analysis.starsSummary" :key="sIdx" class="pill">
-          {{ sum }}
+      <!-- 🌟 專業深度星盤與技術論斷專區 (預設收攏/透過按鈕切換展開，適合有研究紫微者) -->
+      <div class="pro-technical-wrapper">
+        <div class="pro-toggle-bar">
+          <button
+            class="btn-pro-expand"
+            :class="{ active: showStarNames }"
+            @click="showStarNames = !showStarNames"
+          >
+            <span class="icon">{{ showStarNames ? '📖 正在顯示專業星曜與深層技術分析' : '🔍 點此展開專業星盤格局、飛星因果與深度斷語' }}</span>
+            <span class="state-pill">{{ showStarNames ? '點擊收起技術分析 ▴' : '含玄空飛星、古訣斷語 ▾' }}</span>
+          </button>
         </div>
+
+        <!-- 只有開啟專業模式時展開技術分析 -->
+        <transition name="fade">
+          <div v-if="showStarNames" class="pro-content-area">
+            <!-- (A) 宮位專屬：玄空飛星與自化追蹤卡 -->
+            <div v-if="analysis.palaceSihuaSummary" class="palace-sihua-box">
+              <div class="sihua-box-header">
+                <span class="sihua-box-title">🔀 宮干【{{ analysis.palaceSihuaSummary.stem }}】玄空飛星與自化連鎖</span>
+                <span class="sihua-box-badge">動態因果與受災點</span>
+              </div>
+              <div class="sihua-box-body">
+                <div v-if="analysis.palaceSihuaSummary.plainStory" class="sihua-plain-story">
+                  <span class="story-badge">💡 飛星因果解讀：</span>
+                  <span class="story-text">{{ analysis.palaceSihuaSummary.plainStory }}</span>
+                </div>
+
+                <div class="fly-out-row">
+                  <span class="row-label">本宮向外發射：</span>
+                  <div class="fly-out-tags">
+                    <span v-for="(fo, fIdx) in analysis.palaceSihuaSummary.flyOut" :key="fIdx" class="fly-tag-pill">
+                      {{ fo }}
+                    </span>
+                  </div>
+                </div>
+                <div v-if="analysis.palaceSihuaSummary.selfSihua.length > 0" class="self-row">
+                  <span class="row-label">本宮自化消散：</span>
+                  <span class="self-highlight">
+                    ⚠️ {{ analysis.palaceSihuaSummary.selfSihua.join('、') }}（主氣數自我內耗、成果容易莫名流失）
+                  </span>
+                </div>
+                <div v-if="analysis.palaceSihuaSummary.clashedBy && analysis.palaceSihuaSummary.clashedBy.length > 0" class="clashed-by-row">
+                  <span class="row-label">⚠️ 外部受災沖擊：</span>
+                  <span class="clash-highlight">
+                    遭 {{ analysis.palaceSihuaSummary.clashedBy.join('、') }}（此為該面向遭遇阻力或危機的幕後元凶！）
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- (B) 核心特徵與格局氣數 -->
+            <div class="summary-pills">
+              <div v-for="(sum, sIdx) in analysis.starsSummary" :key="sIdx" class="pill">
+                {{ sum }}
+              </div>
+            </div>
+
+            <div v-if="analysis.keyHighlights.length > 0" class="section-box highlights-box">
+              <h4 class="section-title">📌 核心特徵與格局氣數</h4>
+              <ul class="clean-list">
+                <li v-for="(hl, hIdx) in analysis.keyHighlights" :key="hIdx">
+                  {{ hl }}
+                </li>
+              </ul>
+            </div>
+
+            <!-- (C) 講義專論深度斷語解說 -->
+            <div class="section-box detail-box">
+              <h4 class="section-title">📖 講義專論深度斷語解說</h4>
+              <div v-if="analysis.detailedExplanations.length > 0" class="paragraphs">
+                <p v-for="(para, pIdx) in analysis.detailedExplanations" :key="pIdx">
+                  {{ para }}
+                </p>
+              </div>
+              <div v-else class="empty-tip">
+                該宮星曜組合平穩，請參酌對宮與三方四正之吉凶星氣數綜合論斷。
+              </div>
+            </div>
+          </div>
+        </transition>
       </div>
 
-      <div v-if="analysis.keyHighlights.length > 0" class="section-box highlights-box">
-        <h4 class="section-title">📌 核心特徵與格局氣數</h4>
-        <ul class="clean-list">
-          <li v-for="(hl, hIdx) in analysis.keyHighlights" :key="hIdx">
-            {{ hl }}
-          </li>
-        </ul>
-      </div>
-
-      <!-- 7. 📖 詳解文章 (技術專論深入斷語，放後面) -->
-      <div class="section-box detail-box">
-        <h4 class="section-title">📖 講義專論深度斷語解說</h4>
-        <div v-if="analysis.detailedExplanations.length > 0" class="paragraphs">
-          <p v-for="(para, pIdx) in analysis.detailedExplanations" :key="pIdx">
-            {{ para }}
-          </p>
-        </div>
-        <div v-else class="empty-tip">
-          該宮星曜組合平穩，請參酌對宮與三方四正之吉凶星氣數綜合論斷。
-        </div>
-      </div>
-
-      <!-- 🌸 聖嚴法師心靈指引與佛法正信開示 (Gem專用智庫直達) -->
+      <!-- 🌸 佛法心靈環保開示 (源自聖嚴法師法鼓全集正信佛法智慧) -->
       <div v-if="analysis.masterGuidance" class="section-box master-box">
         <div class="master-header">
           <div class="master-title-wrap">
@@ -258,17 +276,17 @@ function formatPlainContent(text: string, showStars: boolean): string {
           </div>
         </div>
 
-        <!-- 🤖 聖嚴法師佛法智慧 AI 對話 (Gemini Gem 專屬智庫直達) -->
+        <!-- 🤖 《法鼓全集》智慧解說 AI 對話室 (Google Gem 大數據智庫連結) -->
         <div class="gemini-gem-card">
           <div class="gem-header">
             <div class="gem-title-wrap">
               <span class="gem-icon">✨</span>
-              <span class="gem-title">有疑問想深入請教？與「聖嚴法師佛法智庫 AI」一對一對話</span>
+              <span class="gem-title">遇到困惑想深入請教？「法鼓全集」智慧解說 AI</span>
             </div>
             <span class="gem-badge">Gemini Gem 智庫</span>
           </div>
           <p class="gem-desc">
-            若對星盤盲點、佛法因果或心靈卡關有不理解之處，歡迎點擊下方進入專屬 AI 對話室。此智庫完整匯入了聖嚴法師《法鼓全集》與正信佛法教導，能隨時針對您的具體困惑進行溫暖、慈悲的解惑對話。
+            若對星盤盲點、人生因果或心靈卡關有不理解之處，歡迎點擊下方進入專屬 AI 對話室。此 Google Gem 系統單純連結了《法鼓全集》完整文獻與大數據智慧，能針對您的提問提供客觀、慈悲的正信佛法解讀與生活疏導。
           </p>
           <a
             href="https://gemini.google.com/gem/14Ctk6nL941tvvbGxQ4FIx5wph_98HtAh?usp=sharing"
@@ -277,7 +295,7 @@ function formatPlainContent(text: string, showStars: boolean): string {
             class="gem-action-btn"
           >
             <span class="btn-icon">💬</span>
-            <span class="btn-text">開啟聖嚴法師佛學 AI 對話室</span>
+            <span class="btn-text">開啟「法鼓全集」智慧解說 AI 對話室</span>
             <span class="btn-arrow">↗</span>
           </a>
         </div>
@@ -690,11 +708,76 @@ function formatPlainContent(text: string, showStars: boolean): string {
 .advice-box {
   background: rgba(16, 185, 129, 0.08);
   border: 1px solid rgba(16, 185, 129, 0.25);
-  margin-bottom: 0;
+  margin-bottom: 16px;
 }
 
 .advice-box .section-title {
   color: #34d399;
+}
+
+/* 專業深度星盤與技術論斷專區折疊卡 */
+.pro-technical-wrapper {
+  margin: 20px 0 24px 0;
+}
+
+.pro-toggle-bar {
+  display: flex;
+  justify-content: center;
+}
+
+.btn-pro-expand {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  color: #93c5fd;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.btn-pro-expand:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  border-color: #60a5fa;
+}
+
+.btn-pro-expand.active {
+  background: linear-gradient(135deg, #1e293b 0%, #1e1b4b 100%);
+  border-color: #a855f7;
+  color: #e9d5ff;
+}
+
+.btn-pro-expand .state-pill {
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.pro-content-area {
+  margin-top: 14px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px dashed #3b82f6;
+  border-radius: 10px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 
 .clean-list {

@@ -233,7 +233,7 @@ export function calculateChart(
   palaces[EARTH_BRANCHES.indexOf(huagaiBranch)].minorStars.push({ name: '華蓋', brightness: '廟', type: 'minor' });
 
   // 4. 婚姻感情核心吉曜：紅鸞、天喜
-  // 紅鸞：卯宮起子年，逆數至生年地支（公式: (3 - yearBranchIdx + 12) % 12）
+  // 紅鸞：卯宮(3)起子年，逆數至生年地支
   const yearBranchIdx = EARTH_BRANCHES.indexOf(cal.yearBranch);
   const hongluanIdx = (3 - yearBranchIdx + 12) % 12;
   palaces[hongluanIdx].minorStars.push({ name: '紅鸞', brightness: '廟', type: 'minor' });
@@ -241,6 +241,58 @@ export function calculateChart(
   // 天喜：紅鸞之對宮（沖紅鸞之位，即 (hongluanIdx + 6) % 12）
   const tianxiIdx = (hongluanIdx + 6) % 12;
   palaces[tianxiIdx].minorStars.push({ name: '天喜', brightness: '廟', type: 'minor' });
+
+  // 5. 感情與人際神煞：天姚、咸池、孤辰、寡宿
+  // 天姚：丑宮(1)起正月順數至生月
+  const tianyaoIdx = (1 + (cal.lunarMonth - 1)) % 12;
+  palaces[tianyaoIdx].minorStars.push({ name: '天姚', brightness: '廟', type: 'minor' });
+
+  // 咸池：申子辰在酉(9)，寅午戌在卯(3)，巳酉丑在午(6)，亥卯未在子(0)
+  const xianchiMap: Record<string, number> = {
+    '申': 9, '子': 9, '辰': 9,
+    '寅': 3, '午': 3, '戌': 3,
+    '巳': 6, '酉': 6, '丑': 6,
+    '亥': 0, '卯': 0, '未': 0
+  };
+  const xianchiIdx = xianchiMap[cal.yearBranch] ?? 9;
+  palaces[xianchiIdx].minorStars.push({ name: '咸池', brightness: '陷', type: 'minor' });
+
+  // 孤辰、寡宿：
+  // 亥子丑年在寅(2)戌(10)，寅卯辰年在巳(5)丑(1)，巳午未年在申(8)辰(4)，申酉戌年在亥(11)未(7)
+  const guchenGuasuMap: Record<string, { guchen: number; guasu: number }> = {
+    '亥': { guchen: 2, guasu: 10 }, '子': { guchen: 2, guasu: 10 }, '丑': { guchen: 2, guasu: 10 },
+    '寅': { guchen: 5, guasu: 1 },  '卯': { guchen: 5, guasu: 1 },  '辰': { guchen: 5, guasu: 1 },
+    '巳': { guchen: 8, guasu: 4 },  '午': { guchen: 8, guasu: 4 },  '未': { guchen: 8, guasu: 4 },
+    '申': { guchen: 11, guasu: 7 }, '酉': { guchen: 11, guasu: 7 }, '戌': { guchen: 11, guasu: 7 }
+  };
+  const gg = guchenGuasuMap[cal.yearBranch] || { guchen: 2, guasu: 10 };
+  palaces[gg.guchen].badStars.push({ name: '孤辰', brightness: '平', type: 'bad' });
+  palaces[gg.guasu].badStars.push({ name: '寡宿', brightness: '平', type: 'bad' });
+
+  // 6. 事業、名譽、貴人吉曜：台輔、封誥、恩光、天貴、三台、八座
+  // 台輔：午宮(6)起子時順數至生時
+  const taifuIdx = (6 + birthHourIdx) % 12;
+  palaces[taifuIdx].minorStars.push({ name: '台輔', brightness: '廟', type: 'minor' });
+
+  // 封誥：寅宮(2)起子時順數至生時
+  const fenggaoIdx = (2 + birthHourIdx) % 12;
+  palaces[fenggaoIdx].minorStars.push({ name: '封誥', brightness: '廟', type: 'minor' });
+
+  // 恩光：文昌宮順數至生日減一
+  const enguangIdx = (wenchangIdx + (cal.lunarDay - 1)) % 12;
+  palaces[enguangIdx].minorStars.push({ name: '恩光', brightness: '廟', type: 'minor' });
+
+  // 天貴：文曲宮順數至生日減一
+  const tianguiIdx = (wenquIdx + (cal.lunarDay - 1)) % 12;
+  palaces[tianguiIdx].minorStars.push({ name: '天貴', brightness: '廟', type: 'minor' });
+
+  // 三台：左輔宮順數至生日減一
+  const santaiIdx = (zuofuIdx + (cal.lunarDay - 1)) % 12;
+  palaces[santaiIdx].minorStars.push({ name: '三台', brightness: '廟', type: 'minor' });
+
+  // 八座：右弼宮逆數至生日減一
+  const bazuoIdx = (youbiIdx - (cal.lunarDay - 1) % 12 + 12) % 12;
+  palaces[bazuoIdx].minorStars.push({ name: '八座', brightness: '廟', type: 'minor' });
 
   // 7. 計算目標流年與虛歲
   const currentAge = targetYear - year + 1; // 虛歲
