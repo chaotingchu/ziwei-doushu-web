@@ -227,6 +227,11 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       const gStars = badStars.filter(s => s === '孤辰' || s === '寡宿').join('、');
       keyHighlights.push(`🕯️ 夫妻宮逢【${gStars}】：主獨立清高，感情上容易各忙各的或聚少離多，宜主動製造生活共鳴與深度交心。`);
     }
+    if (badStars.includes('火星') || badStars.includes('鈴星')) {
+      const fireStars = badStars.filter(s => s === '火星' || s === '鈴星').join('與');
+      keyHighlights.push(`🔥 夫妻宮逢【${fireStars}】：講義第十五章明示配偶個性剛烈急躁、丹田有力、說話聲音宏亮。感情來得急去得快，易有口舌摩擦或配偶常有小病痛，相處宜退一步海闊天空。`);
+      detailedExplanations.push(`講義夫妻專論【火星與鈴星】：火星為「燃燒星」、鈴星為「爆炸星」。落入夫妻宮主配偶個性剛烈急躁、毛髮易有捲曲或牙齒皮膚敏感；兩人在溝通時容易因一時口氣不好而瞬間擦槍走火。單守或落陷時感情波折較多，日常相處需切記「生氣時先冷靜、少說刺耳狠話」，多欣賞伴侶行動力強、有魄力的優點。`);
+    }
     advice.push(badStars.length > 0 ? '💡【白話開運提醒】：本宮見【' + badStars.join('、') + '】小磨練。相處切忌「爭一時輸贏」，生氣時先冷靜半小時再去溝通，感情反而更甜。' : '💡【白話開運提醒】：宮位平穩，日常多製造專屬儀式感，互為最強後盾。');
 
   // 2. 財運求財
@@ -253,6 +258,14 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       });
     }
     if (minorStars.includes('祿存')) keyHighlights.push('財帛宮逢【祿存】，得天厚賜財祿，利於儲蓄積累，正財源源不絕。');
+    if (majorStars.includes('貪狼') && (badStars.includes('火星') || badStars.includes('鈴星'))) {
+      const starName = badStars.includes('火星') ? '火貪格' : '鈴貪格';
+      keyHighlights.push(`💰 財帛宮逢【${starName}】：講義第十章載明「火貪、鈴貪主爆發橫財」，求財具極強敏銳度與爆發力，易得意外機遇暴發，唯發後宜轉入實業房地產守成！`);
+      detailedExplanations.push(`講義財帛專論【${starName}】：貪狼與火星或鈴星同宮於財帛宮，形成著名的橫發格。講義指出此格在辰戌丑未四墓宮位爆發力最強，主有意外之財、橫發之機；但亦提醒「橫發後恐防橫破」，賺得大錢後務必見好就收，切忌賭性堅強或盲目擴大槓桿。`);
+    } else if (badStars.includes('火星') || badStars.includes('鈴星')) {
+      keyHighlights.push('財帛宮見【火星/鈴星】：求財行動力極快，但易有衝動消費或揮霍傾向，理財以守為攻，嚴防高風險投機。');
+      detailedExplanations.push('講義財帛專論【火星與鈴星】：火鈴入財帛宮主金錢流動劇烈，花錢常憑一時衝動，若無祿存吉星壓制，易有財來財去之象。宜設定自動定期定額儲蓄，強迫把流動資金鎖住。');
+    }
     advice.push(badStars.includes('地空') || badStars.includes('地劫') ? '💡【白話開運提醒】：見空劫星，手頭流動大。最好的化解法就是「強迫儲蓄」或把錢換成保值不動產，平時少看投機明牌。' : '💡【白話開運提醒】：善用滾雪球效應進行穩健配置，財富積少成多。');
 
   // 3. 事業升遷
@@ -273,6 +286,11 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
         const docStar = (careerData.stars as any)[star];
         if (docStar && docStar.general) detailedExplanations.push(...docStar.general.slice(0, 3));
       });
+    }
+    if (badStars.includes('火星') || badStars.includes('鈴星')) {
+      const fireStars = badStars.filter(s => s === '火星' || s === '鈴星').join('與');
+      keyHighlights.push(`⚡ 官祿宮逢【${fireStars}】：講義第十三章指出火鈴利於具爆發力、速度感、影藝娛樂、休閒、餐飲或與火/電機/金屬技術相關之行業，工作敢衝敢拼！`);
+      detailedExplanations.push(`講義官祿專論【火星與鈴星】：火鈴坐官祿宮，事業開創力極強，行事果斷迅速，最忌墨守成規。適合演藝、休閒娛樂、健身、機械鑄造或餐飲火食行業。在一般職場上表現雷厲風行，唯需注意防範與同仁因步調不一而引發火爆爭吵。`);
     }
     advice.push('💡【白話開運提醒】：職場除了硬實力，口碑與情商更是推進器。多讚美團隊伙伴、把榮譽分給大家，升遷路上貴人自然源源不絕。');
 
@@ -414,6 +432,10 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       const docStar = (friendsData.stars as any)[star];
       if (docStar) detailedExplanations.push(...docStar.slice(0, 2));
     });
+    if (badStars.includes('火星') || badStars.includes('鈴星')) {
+      keyHighlights.push('奴僕宮逢【火星/鈴星】：講義指出朋友部屬易有暴躁性急之人，防因一時衝動或誤會而遭背棄、是非爭吵，合夥宜慎。');
+      detailedExplanations.push('講義交友專論【火星與鈴星】：奴僕宮逢火星或鈴星，與朋友部屬互動易大起大落，熱情來得快去得快。易交到個性剛烈的朋友，需防酒肉朋友因利益衝突反目成仇，出外為朋友奔波忙碌之餘亦需保護自身界限。');
+    }
     if (detailedExplanations.length === 0) detailedExplanations.push('奴僕宮為人際關係樞紐。吉星多主得部屬朋黨助力；煞星需防受人牽累或背後是非。');
     advice.push('💡【白話開運提醒】：社交重質不重量。學會拒絕無效社交，把時間留給懂你、支持你並能共同成長的優質好友。');
 
@@ -432,6 +454,10 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       const docStar = (parentsData.stars as any)[star];
       if (docStar) detailedExplanations.push(...docStar.slice(0, 2));
     });
+    if (badStars.includes('火星') || badStars.includes('鈴星')) {
+      keyHighlights.push('父母宮逢【火星/鈴星】：講義指出父母或長官性情較為剛烈急躁，兩代相處易有脾氣摩擦或觀念衝突，宜多包容傾聽。');
+      detailedExplanations.push('講義父母專論【火星與鈴星】：父母宮見火鈴，主與長輩溝通容易因說話口氣過重而起衝突，長輩對自己要求嚴格甚至脾氣急躁。平日多以溫和態度相待，多關懷父母的心血管與睡眠保養。');
+    }
     if (detailedExplanations.length === 0 && parentsData.general) detailedExplanations.push(...parentsData.general.slice(0, 3));
     advice.push('💡【白話開運提醒】：百善孝為先。經常給父母一通關心的電話，父母的祝福往往是人生路上最強大的護身符。');
 
@@ -463,7 +489,11 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     });
     if (healthBad.includes('擎羊')) keyHighlights.push('疾厄逢【擎羊】：講義明示防外傷疤痕、急性發炎或跌撞刀傷，見血光宜捐血化解。');
     if (healthBad.includes('陀羅')) keyHighlights.push('疾厄逢【陀羅】：防慢性病拖延、筋骨痠痛或牙齒脊椎毛病，日常宜多伸展運動。');
-    if (healthBad.includes('火星') || healthBad.includes('鈴星')) keyHighlights.push('疾厄逢【火鈴】：防火氣旺盛、皮膚過敏或急性發燒發炎，飲食宜清淡避燥熱。');
+    if (healthBad.includes('火星') || healthBad.includes('鈴星')) {
+      const fireStars = healthBad.filter(s => s === '火星' || s === '鈴星').join('與');
+      keyHighlights.push(`疾厄逢【${fireStars}】：講義載明火星鈴星防火氣過旺、皮膚過敏、急性胃腸炎、胃潰瘍或心火亢盛，平時宜多飲溫水降火。`);
+      detailedExplanations.push(`講義疾厄專論【${fireStars}】：火星陽火、鈴星陰火。入疾厄宮主火氣旺盛、血熱、皮膚易過敏發癢、牙痛齒齦腫脹；天機天梁會火星天馬防流產；機梁會羊陀天刑加火鈴主盲腸炎、胃潰瘍。平日生活需戒除熬夜與刺激性辛辣油炸食物，保持情緒平穩以護心血管。`);
+    }
     if (healthBad.includes('天刑')) keyHighlights.push('疾厄逢【天刑】：講義指出天刑在疾厄防外傷手術或肢體傷殘，平時多捐血布施。');
     if (healthBad.includes('陰煞')) keyHighlights.push('疾厄逢【陰煞】：容易小病不斷、易遇誤診，除了醫療治療外宜多行善積陰德迴向。');
 
@@ -703,6 +733,25 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     // 7. 馬頭帶劍格 (午宮擎羊)
     if (lifeP.earthBranch === '午' && lifeP.badStars.some(s => s.name === '擎羊')) {
       matchedPatterns.push('【馬頭帶劍格】：午宮安命逢擎羊，性情剛烈勇猛，敢衝敢拼；需防血光傷災與脾氣暴烈，宜習一技之長以柔化剛。');
+    }
+    // 8. 火貪格 / 鈴貪格 (貪狼與火星或鈴星同宮或三方會聚)
+    const hasTanlangInSanfang = SanFangMajor.includes('貪狼');
+    const hasHuoxingInSanfang = SanFangBad.includes('火星');
+    const hasLingxingInSanfang = SanFangBad.includes('鈴星');
+    if (hasTanlangInSanfang && (hasHuoxingInSanfang || hasLingxingInSanfang)) {
+      const patName = (hasHuoxingInSanfang && hasLingxingInSanfang) ? '火鈴貪格' : hasHuoxingInSanfang ? '火貪格' : '鈴貪格';
+      matchedPatterns.push(`【${patName}】：講義第十章名宿專論「火貪、鈴貪格，主爆發橫財、武職掌權、經商暴發」！貪狼多才多藝，遇火星或鈴星激發其爆發力，易在辰戌丑未四墓宮位或順應時代風口一飛沖天。講義亦叮嚀：「爆發之後需懂守成斂藏，若持續貪求無度則恐橫破。」`);
+    }
+    // 9. 權殺化祿格 (火星廟旺會七殺、化權、化祿)
+    const hasQishaInSanfang = SanFangMajor.includes('七殺');
+    const hasQuanInSanfang = palaceFlying.targets.quan.star === '七殺' || lifeP.majorStars.some(s => s.sihua === '權') || oppoP.majorStars.some(s => s.sihua === '權');
+    const hasLuInSanfang = palaceFlying.targets.lu.star === '七殺' || lifeP.majorStars.some(s => s.sihua === '祿') || oppoP.majorStars.some(s => s.sihua === '祿') || SanFangMinor.includes('祿存');
+    if (SanFangBad.includes('火星') && hasQishaInSanfang && (hasQuanInSanfang || hasLuInSanfang)) {
+      matchedPatterns.push('【權殺化祿格】：講義第十章記載「火星坐命或三方會七殺，更化權化祿，性情剛烈有英雄氣概，立功邊疆，能成大業」。做事果決有威儀，適合在開拓型企業、軍警司法或技術工程領域建功立業。');
+    }
+    // 10. 火羊格 / 火陀格 (行事果敢掌權)
+    if (SanFangBad.includes('火星') && SanFangBad.includes('擎羊')) {
+      matchedPatterns.push('【火羊威權格】：講義第三章載明「火羊同宮或交會，行事果敢威猛、能掌大權」；旺地有衝勁魄力，落陷時則防急躁暴烈引發破耗或傷疤。');
     }
 
     if (matchedPatterns.length > 0) {
