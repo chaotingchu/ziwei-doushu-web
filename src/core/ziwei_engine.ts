@@ -182,6 +182,29 @@ export function calculateChart(
   palaces[dijieIdx].badStars.push({ name: '地劫', brightness: '陷', type: 'bad' });
   palaces[dikongIdx].badStars.push({ name: '地空', brightness: '陷', type: 'bad' });
 
+  // 火星、鈴星（年支起宮順數生時）
+  // 火星起宮：申子辰年起寅(2)，寅午戌年起丑(1)，巳酉丑年起卯(3)，亥卯未年起酉(9)
+  const huoxingStartMap: Record<string, number> = {
+    '申': 2, '子': 2, '辰': 2,
+    '寅': 1, '午': 1, '戌': 1,
+    '巳': 3, '酉': 3, '丑': 3,
+    '亥': 9, '卯': 9, '未': 9
+  };
+  const huoxingStart = huoxingStartMap[cal.yearBranch] ?? 2;
+  const huoxingIdx = (huoxingStart + birthHourIdx) % 12;
+  palaces[huoxingIdx].badStars.push({ name: '火星', brightness: STAR_BRIGHTNESS['火星']?.[huoxingIdx] || '廟', type: 'bad' });
+
+  // 鈴星起宮：申子辰/巳酉丑/亥卯未年起戌(10)，寅午戌年起卯(3)
+  const lingxingStartMap: Record<string, number> = {
+    '申': 10, '子': 10, '辰': 10,
+    '寅': 3,  '午': 3,  '戌': 3,
+    '巳': 10, '酉': 10, '丑': 10,
+    '亥': 10, '卯': 10, '未': 10
+  };
+  const lingxingStart = lingxingStartMap[cal.yearBranch] ?? 10;
+  const lingxingIdx = (lingxingStart + birthHourIdx) % 12;
+  palaces[lingxingIdx].badStars.push({ name: '鈴星', brightness: STAR_BRIGHTNESS['鈴星']?.[lingxingIdx] || '廟', type: 'bad' });
+
   // (C) 年干系星：祿存、擎羊、陀羅、天魁、天鉞
   const lucunBranch = LUCUN_TABLE[cal.yearStem] || '寅';
   const lucunIdx = EARTH_BRANCHES.indexOf(lucunBranch);

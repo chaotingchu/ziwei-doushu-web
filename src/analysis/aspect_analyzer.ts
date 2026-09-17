@@ -818,6 +818,14 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     blindSpots.push('【天刑化剋】：性格孤傲不群、原則過硬缺乏彈性，容易因說話太衝招致是非甚至官非刑傷。');
     improvements.push('學會柔軟圓融，得理且饒人；凡事多留退路給別人，以柔克剛。');
   }
+  if (badStars.includes('火星')) {
+    blindSpots.push('【火星暴躁】：性急如火、缺乏耐性，脾氣一來口無遮欄容易傷人，易因一時衝動壞了大局。');
+    improvements.push('遇事強迫自己「延遲反應三秒」，深呼吸緩和心律，戒急用忍。');
+  }
+  if (badStars.includes('鈴星')) {
+    blindSpots.push('【鈴星陰悶】：心思過度深沉、容易暗中記恨生悶氣，長期憋在心裡引發精神內耗與暗疾。');
+    improvements.push('學習坦率溝通，心中有不滿及時溫和說出，常行寬恕，不讓怨氣沉積在心。');
+  }
   if (badStars.includes('孤辰') || badStars.includes('寡宿')) {
     const starName = badStars.includes('孤辰') ? '孤辰' : '寡宿';
     blindSpots.push(`【${starName}孤寂】：個性較為獨立清冷、防備心強不輕易敞開心扉，相處時容易習慣性冷戰或逃避深度溝通，易感孤立無援。`);
