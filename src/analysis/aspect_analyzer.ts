@@ -232,6 +232,11 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       keyHighlights.push(`🔥 夫妻宮逢【${fireStars}】：講義第十五章明示配偶個性剛烈急躁、丹田有力、說話聲音宏亮。感情來得急去得快，易有口舌摩擦或配偶常有小病痛，相處宜退一步海闊天空。`);
       detailedExplanations.push(`講義夫妻專論【火星與鈴星】：火星為「燃燒星」、鈴星為「爆炸星」。落入夫妻宮主配偶個性剛烈急躁、毛髮易有捲曲或牙齒皮膚敏感；兩人在溝通時容易因一時口氣不好而瞬間擦槍走火。單守或落陷時感情波折較多，日常相處需切記「生氣時先冷靜、少說刺耳狠話」，多欣賞伴侶行動力強、有魄力的優點。`);
     }
+    if (badStars.includes('截空')) {
+      const hasKong = badStars.includes('地空') || badStars.includes('天空');
+      keyHighlights.push('夫妻宮逢【截空星】：講義第十五章明示「截空在夫妻宮，結婚意願較低；加逢天空星尤驗，甚至常無婚姻」，宜注重精神知己共鳴。');
+      detailedExplanations.push('講義夫妻專論【截空與空劫】：截空入夫妻宮，命主對世俗婚姻制度期待較淡、結婚意願低，或在感情進展到談婚論嫁時容易莫名受到阻礙拖延。相處宜給彼此足夠精神空間，順其自然。');
+    }
     advice.push(badStars.length > 0 ? '💡【白話開運提醒】：本宮見【' + badStars.join('、') + '】小磨練。相處切忌「爭一時輸贏」，生氣時先冷靜半小時再去溝通，感情反而更甜。' : '💡【白話開運提醒】：宮位平穩，日常多製造專屬儀式感，互為最強後盾。');
 
   // 2. 財運求財
@@ -258,6 +263,32 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       });
     }
     if (minorStars.includes('祿存')) keyHighlights.push('財帛宮逢【祿存】，得天厚賜財祿，利於儲蓄積累，正財源源不絕。');
+    // 講義特有：火空則發 (巳午火宮見地空/天空同宮火星)
+    const isFireBranch = branch === '巳' || branch === '午';
+    const isMetalBranch = branch === '申' || branch === '酉';
+    const hasKong = badStars.includes('地空') || badStars.includes('天空');
+    const hasJie = badStars.includes('地劫');
+    const hasJiekong = badStars.includes('截空');
+    const hasHuo = badStars.includes('火星');
+    const hasLu = minorStars.includes('祿存') || palace.majorStars.some(s => s.sihua === '祿' || s.flowSihua === '祿');
+
+    if (isFireBranch && hasKong && hasHuo) {
+      keyHighlights.push('🔥 財帛宮成【火空則發】：講義第三章載明天空/地空入巳午火宮與火星同宮，為「火空則發」，甚吉！求財有突然暴發、財源驟旺之轉機，唯發後宜轉入保值資產。');
+      detailedExplanations.push('講義財帛專論【火空則發】：巳、午五行屬火，逢地空與火星同度，火借空勢、空助火威，主財運在特定時機點有突發暴富之契機。講義叮嚀：火空之財來得迅猛，發後切記收斂知足、戒除暴躁揮霍，轉買不動產留財。');
+    } else if (isMetalBranch && hasKong) {
+      keyHighlights.push('🔔 財帛宮逢【金空則鳴】：講義第三章明示天空/地空入申酉金宮為「金空則鳴」，利於靠名氣、專業聲望、文藝聲樂求財，名大於利，名至則財隨！');
+      detailedExplanations.push('講義財帛專論【金空則鳴】：申、酉為五行金位，金空則如懸鐘發聲、音聲遠播。財帛宮逢之主以名求財、靠個人品牌、學術專長或公眾聲望進財，多做口碑積累，財富自然水到渠成。');
+    }
+
+    if (hasLu && (hasKong || hasJie || hasJiekong)) {
+      keyHighlights.push('⚠️ 財帛宮【祿逢沖破】：講義載明祿存或化祿逢地空、地劫、截空，為「祿逢沖破」，財來財去、先有後無，忌投機借貸。');
+      detailedExplanations.push('講義財帛專論【祿逢沖破】：祿存或化祿本主財祿，但遇空劫截空等空亡凶煞沖破，使聚財能力大打折扣，容易賺得快花得更快，或因外界環境判斷失誤而破耗。最好的化解之道是賺錢後立即強迫儲蓄，不動用大筆流動本金。');
+    }
+
+    if (hasJiekong) {
+      keyHighlights.push('財帛宮逢【截空星】：講義第三章載明「截空為截路空亡，於財帛宮主求財過程易有停滯、阻礙或財源中斷之煩惱」，宜踏實任職。');
+    }
+
     if (majorStars.includes('貪狼') && (badStars.includes('火星') || badStars.includes('鈴星'))) {
       const starName = badStars.includes('火星') ? '火貪格' : '鈴貪格';
       keyHighlights.push(`💰 財帛宮逢【${starName}】：講義第十章載明「火貪、鈴貪主爆發橫財」，求財具極強敏銳度與爆發力，易得意外機遇暴發，唯發後宜轉入實業房地產守成！`);
@@ -291,6 +322,20 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       const fireStars = badStars.filter(s => s === '火星' || s === '鈴星').join('與');
       keyHighlights.push(`⚡ 官祿宮逢【${fireStars}】：講義第十三章指出火鈴利於具爆發力、速度感、影藝娛樂、休閒、餐飲或與火/電機/金屬技術相關之行業，工作敢衝敢拼！`);
       detailedExplanations.push(`講義官祿專論【火星與鈴星】：火鈴坐官祿宮，事業開創力極強，行事果斷迅速，最忌墨守成規。適合演藝、休閒娛樂、健身、機械鑄造或餐飲火食行業。在一般職場上表現雷厲風行，唯需注意防範與同仁因步調不一而引發火爆爭吵。`);
+    }
+    const isCareerFire = branch === '巳' || branch === '午';
+    const isCareerMetal = branch === '申' || branch === '酉';
+    const hasCareerKong = badStars.includes('地空') || badStars.includes('天空');
+    if (isCareerFire && hasCareerKong && badStars.includes('火星')) {
+      keyHighlights.push('🚀 官祿宮成【火空則發】：巳午火宮天空火星同度，事業具備突然爆發掌權或跨越式躍升之機運，宜積極把握轉折！');
+      detailedExplanations.push('講義官祿專論【火空則發】：官祿在巳午火鄉逢火星地空同宮，事業往往在一夕之間迎來重大突破或業績暴增，開拓力極強。');
+    } else if (isCareerMetal && hasCareerKong) {
+      keyHighlights.push('📣 官祿宮成【金空則鳴】：申酉金宮逢地空坐守，利於聲名遠播、文教藝術、學術發表或建立知名度，在專業領域一鳴驚人！');
+      detailedExplanations.push('講義官祿專論【金空則鳴】：金空如鐘鳴四海。官祿逢之主名聲在外，極利於求名、考評聲譽、打造個人品牌與知名度。');
+    }
+    if (badStars.includes('截空')) {
+      keyHighlights.push('官祿宮見【截空星】：大限或本命逢截空，工作推進偶有停滯擱延或做白工之感，行事宜提早佈局預留緩衝。');
+      detailedExplanations.push('講義官祿專論【截空】：截空入官祿宮主行事易受阻礙或橫生枝節，大限逢之易有事業煩惱；唯心態宜沈穩應對，以慢打快即可化解。');
     }
     advice.push('💡【白話開運提醒】：職場除了硬實力，口碑與情商更是推進器。多讚美團隊伙伴、把榮譽分給大家，升遷路上貴人自然源源不絕。');
 
@@ -329,6 +374,7 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (hasKui || hasYue) keyHighlights.push('官祿宮逢【' + (hasKui && hasYue ? '天魁、天鉞' : hasKui ? '天魁' : '天鉞') + '】：應試得長官長輩提攜，臨場發揮容易得貴人相助。');
     if (hasKe) keyHighlights.push('官祿宮逢【化科星】：化科為正統科甲之神，主名譽聲望、利於各類公職考試與論文著作。');
     if (badStars.includes('地空') || badStars.includes('地劫')) keyHighlights.push('官祿宮見【空劫】：講義指出天空主煩惱想太多不利讀書，需防思緒飄忽，宜多做模擬題訓練定力。');
+    if (badStars.includes('截空')) keyHighlights.push('官祿宮見【截空】：講義第十六章指出截空具有阻礙與使臨場記憶混亂之靈動力，考前宜反覆刷題鞏固基礎。');
     if (badStars.includes('擎羊') || badStars.includes('陀羅')) keyHighlights.push('官祿宮見【羊陀】：容易粗心急躁或卡在難題鑽牛角尖，考試需注重時間分配。');
 
     // 講義如實精選斷語
@@ -356,6 +402,13 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     });
     if (badStars.includes('火星') || badStars.includes('鈴星')) {
       keyHighlights.push('田宅宮見【火星/鈴星】：講義載明火星帶爆發力防散盡祖業，鈴星難守祖產，宜自力置產，不宜因祖業引發家族爭執。');
+    }
+    if (badStars.includes('地空') || badStars.includes('地劫')) {
+      keyHighlights.push('田宅宮見【地空/地劫】：講義第十八章載明「天空地劫臨田宅宮最不利於財，多在獲得後又失去，一生財庫空虛，巳亥同宮更防散盡家財」，宜自購自住房產鎖財。');
+      detailedExplanations.push('講義田宅專論【空劫居田宅】：田宅宮為藏財之庫，逢空劫主庫位開口、財來財去。若祖上留有產業容易變賣分散，最佳解法是靠個人名義買下不可隨意變現之自住房，作為聚寶盆。');
+    }
+    if (badStars.includes('截空')) {
+      keyHighlights.push('田宅宮見【截空星】：置產購房過程易生文書產權延誤，看房簽約需詳閱契約條款。');
     }
     if (detailedExplanations.length === 0) detailedExplanations.push('田宅宮主不動產與藏財之庫。吉星入田宅主家宅興旺、能置房產；煞星入田宅需防修繕耗費或產權糾紛。');
     advice.push('💡【白話開運提醒】：家宅是元氣充電站。客廳保持明亮、玄關不堆雜物，財神與好運自然常常光臨。');
@@ -396,6 +449,12 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       const docStar = (travelData.stars as any)[star];
       if (docStar) detailedExplanations.push(...docStar.slice(0, 2));
     });
+    if (minorStars.includes('天馬') && (badStars.includes('地空') || badStars.includes('地劫') || badStars.includes('截空'))) {
+      keyHighlights.push('遷移宮逢【空亡馬】：天馬逢空劫截空，出外易多奔波徒勞或常跑冤枉路，出發前宜做好行前規劃。');
+      detailedExplanations.push('講義遷移專論【空亡馬與截空】：天馬主奔馳開拓，最忌逢地空、地劫、截空。講義指出截空入遷移宮主出外際遇較差、容易跑冤枉路；行運逢之凡事多留應變時間，防突發延誤。');
+    } else if (badStars.includes('截空')) {
+      keyHighlights.push('遷移宮逢【截空星】：講義載明「截空入遷移宮主出外不順利、際遇較差，行運逢之主常跑冤枉路」，出差遠行重防護。');
+    }
     if (detailedExplanations.length === 0 && travelData.general) detailedExplanations.push(...travelData.general.slice(0, 3));
     advice.push('💡【白話開運提醒】：讀萬卷書不如行萬里路。每當心境受限時，安排一趟短途小旅行或接觸新朋友，往往能瞬間打開靈感與運勢！');
 
@@ -753,6 +812,30 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (SanFangBad.includes('火星') && SanFangBad.includes('擎羊')) {
       matchedPatterns.push('【火羊威權格】：講義第三章載明「火羊同宮或交會，行事果敢威猛、能掌大權」；旺地有衝勁魄力，落陷時則防急躁暴烈引發破耗或傷疤。');
     }
+    // 11. 火空則發格 (天空/地空入巳、午火宮與火星同宮)
+    const hasKongInLife = lifeP.badStars.some(s => s.name === '地空' || s.name === '天空');
+    const hasHuoInLife = lifeP.badStars.some(s => s.name === '火星');
+    const isFirePalace = lifeP.earthBranch === '巳' || lifeP.earthBranch === '午';
+    if (isFirePalace && hasKongInLife && hasHuoInLife) {
+      matchedPatterns.push('【火空則發格】：講義第三章明載「天空/地空入巳、午宮與火星同宮為火空則發，甚吉，財官有突然轉旺之情形」。火空如火爐添風，爆發力極強，機遇驟至暴發騰達！唯發後宜知足穩健守成。');
+    }
+    // 12. 金空則鳴格 (天空/地空入申、酉金宮)
+    const isMetalPalace = lifeP.earthBranch === '申' || lifeP.earthBranch === '酉';
+    if (isMetalPalace && hasKongInLife) {
+      matchedPatterns.push('【金空則鳴格】：講義第三章明載「天空/地空入申、酉金宮，為金空則鳴，易於成名」。金空猶如銅鐘虛心，能敲擊出遠揚之聲，利於名聲傳播、學術文藝、演藝聲望與專業立名！');
+    }
+    // 13. 空亡馬格 (天馬逢地空、地劫或截空同宮)
+    const hasTianmaInLife = lifeP.minorStars.some(s => s.name === '天馬');
+    const hasAnyVoidInLife = lifeP.badStars.some(s => s.name === '地空' || s.name === '地劫' || s.name === '截空');
+    if (hasTianmaInLife && hasAnyVoidInLife) {
+      matchedPatterns.push('【空亡馬】：講義第三章載明「天馬與地空、地劫、截空同宮，謂之空亡馬，主雄心壯志難以如願，奔走無力、徒勞無功」。出外求謀宜平實穩健，防跑冤枉路，以一技之長深耕勝過盲目奔波。');
+    }
+    // 14. 祿逢沖破格 (命宮逢祿存或化祿，又逢地空、地劫、截空或化忌)
+    const hasLuInLife = lifeP.minorStars.some(s => s.name === '祿存') || lifeP.majorStars.some(s => s.sihua === '祿' || s.flowSihua === '祿');
+    const hasJiInLife = lifeP.majorStars.some(s => s.sihua === '忌' || s.flowSihua === '忌');
+    if (hasLuInLife && (hasAnyVoidInLife || hasJiInLife)) {
+      matchedPatterns.push('【祿逢沖破格】：講義第三章與第十章記載「化祿或祿存最怕逢地空、地劫、截空及化忌星，為祿逢沖破，顯示財來財去、先有後無」。賺錢容易但留財不易，理財首重收斂，宜強迫購置不動產守財。');
+    }
 
     if (matchedPatterns.length > 0) {
       matchedPatterns.forEach(pat => {
@@ -874,6 +957,10 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
   if (badStars.includes('鈴星')) {
     blindSpots.push('【鈴星陰悶】：心思過度深沉、容易暗中記恨生悶氣，長期憋在心裡引發精神內耗與暗疾。');
     improvements.push('學習坦率溝通，心中有不滿及時溫和說出，常行寬恕，不讓怨氣沉積在心。');
+  }
+  if (badStars.includes('截空')) {
+    blindSpots.push('【截空阻滯】：行事多波折延宕，容易在緊要關頭橫生枝節、猶豫不決而錯失良機，或做事虎頭蛇尾。');
+    improvements.push('做事做好備案（Plan B），重要進度提前追蹤，不拖到最後一刻；培養持之以恆的定力。');
   }
   if (badStars.includes('孤辰') || badStars.includes('寡宿')) {
     const starName = badStars.includes('孤辰') ? '孤辰' : '寡宿';

@@ -240,6 +240,18 @@ export function calculateChart(
   const tianxingBrightness = [2, 3, 9, 10].includes(tianxingIdx) ? '廟' : '平'; // 寅卯酉戌為廟
   palaces[tianxingIdx].badStars.push({ name: '天刑', brightness: tianxingBrightness, type: 'bad' });
 
+  // 截路空亡 (截空)：甲己在申酉(陽年申/陰年酉)，乙庚在午未(陽年午/陰年未)，丙辛在辰巳(陽年辰/陰年巳)，丁壬在寅卯(陽年寅/陰年卯)，戊癸在子丑(陽年子/陰年丑)
+  const jiekongMap: Record<string, { yang: number; yin: number }> = {
+    '甲': { yang: 8, yin: 9 },  '己': { yang: 8, yin: 9 },
+    '乙': { yang: 6, yin: 7 },  '庚': { yang: 6, yin: 7 },
+    '丙': { yang: 4, yin: 5 },  '辛': { yang: 4, yin: 5 },
+    '丁': { yang: 2, yin: 3 },  '壬': { yang: 2, yin: 3 },
+    '戊': { yang: 0, yin: 1 },  '癸': { yang: 0, yin: 1 },
+  };
+  const jkPair = jiekongMap[cal.yearStem] || { yang: 8, yin: 9 };
+  const jiekongIdx = isYangYear ? jkPair.yang : jkPair.yin;
+  palaces[jiekongIdx].badStars.push({ name: '截空', brightness: '陷', type: 'bad' });
+
   // 2. 陰煞：正月在寅(2)、二月在子(0)、三月在戌(10)、四月在申(8)、五月在午(6)、六月在辰(4)（六月一循環）
   const yinshaCycle = [2, 0, 10, 8, 6, 4];
   const yinshaIdx = yinshaCycle[(cal.lunarMonth - 1) % 6];
