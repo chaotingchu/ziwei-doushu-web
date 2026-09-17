@@ -122,7 +122,9 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
       </div>
 
       <div class="legend">
-        <span class="legend-item"><span class="dot sel"></span> 選中發射宮</span>
+        <span class="legend-item"><span class="dot six-lucky"></span> 六吉星</span>
+        <span class="legend-item"><span class="dot six-bad"></span> 六煞星</span>
+        <span class="legend-item"><span class="dot sel"></span> 選中宮</span>
         <span class="legend-item"><span class="dot fly-lu"></span> 祿入</span>
         <span class="legend-item"><span class="dot fly-quan"></span> 權入</span>
         <span class="legend-item"><span class="dot fly-ke"></span> 科入</span>
@@ -263,7 +265,12 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
                   v-for="m in getPalace(cellIdx)?.minorStars"
                   :key="m.name"
                   class="star-badge minor"
-                  :class="{ lucun: m.name === '祿存', tianma: m.name === '天馬', peach: ['紅鸞', '天喜', '天姚', '咸池'].includes(m.name) }"
+                  :class="{ 
+                    'six-lucky': ['左輔', '右弼', '文昌', '文曲', '天魁', '天鉞'].includes(m.name),
+                    lucun: m.name === '祿存', 
+                    tianma: m.name === '天馬', 
+                    peach: ['紅鸞', '天喜', '天姚', '咸池'].includes(m.name) 
+                  }"
                 >
                   {{ m.name }}
                   <span v-if="getSelfSihuaForStar(cellIdx, m.name)" class="sihua-tag self" :class="getSelfSihuaForStar(cellIdx, m.name)">
@@ -274,6 +281,9 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
                   v-for="b in getPalace(cellIdx)?.badStars"
                   :key="b.name"
                   class="star-badge bad"
+                  :class="{
+                    'six-bad': ['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫'].includes(b.name)
+                  }"
                 >
                   {{ b.name }}
                 </span>
@@ -618,6 +628,8 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
   background: rgba(239, 68, 68, 0.06) !important;
 }
 
+.dot.six-lucky { background: #38bdf8; box-shadow: 0 0 6px rgba(56, 189, 248, 0.8); }
+.dot.six-bad { background: #f43f5e; box-shadow: 0 0 6px rgba(244, 63, 94, 0.8); }
 .dot.fly-lu { background: #16a34a; box-shadow: 0 0 6px #16a34a; }
 .dot.fly-quan { background: #dc2626; box-shadow: 0 0 6px #dc2626; }
 .dot.fly-ke { background: #2563eb; box-shadow: 0 0 6px #2563eb; }
@@ -632,7 +644,18 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
 
 .star-badge.minor {
   font-size: 11px;
+  color: #94a3b8;
+}
+
+/* 六吉星（左輔、右弼、文昌、文曲、天魁、天鉞）：清澈青藍/天青色高亮，帶柔和底色標籤 */
+.star-badge.minor.six-lucky {
   color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-weight: 700;
+  text-shadow: 0 0 4px rgba(56, 189, 248, 0.4);
 }
 
 .star-badge.minor.lucun {
@@ -652,7 +675,18 @@ function getSelfSihuaForStar(palaceIdx: number, starName: string): SihuaType | n
 
 .star-badge.bad {
   font-size: 11px;
+  color: #f87171;
+}
+
+/* 六煞星（擎羊、陀羅、火星、鈴星、地空、地劫）：焰紅/玫紅色醒目高亮，帶警示底色標籤 */
+.star-badge.bad.six-bad {
   color: #fb7185;
+  background: rgba(244, 63, 94, 0.14);
+  border: 1px solid rgba(244, 63, 94, 0.4);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-weight: 800;
+  text-shadow: 0 0 4px rgba(244, 63, 94, 0.4);
 }
 
 .star-badge.flow {
