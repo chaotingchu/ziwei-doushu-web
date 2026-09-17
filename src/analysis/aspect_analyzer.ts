@@ -142,11 +142,40 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     ? '【當前大限 ' + bigLimitRangeStr + ' 歲】' 
     : '【' + chart.targetYear + ' 流年行運】';
 
+  // 嚴格依據講義第十二章推斷要點：推斷各面向切忌「單宮單星論斷」！
+  // 必須將「本宮、對宮（正照/沖破）、三合宮（合照）、兩鄰宮（夾宮）」三方四正全面納入綜合研判
+  const oppoPalace = chart.palaces[(targetIdx + 6) % 12];
+  const tri1Palace = chart.palaces[(targetIdx + 4) % 12];
+  const tri2Palace = chart.palaces[(targetIdx + 8) % 12];
+  const prevPalace = chart.palaces[(targetIdx - 1 + 12) % 12]; // 夾宮前位
+  const nextPalace = chart.palaces[(targetIdx + 1) % 12];       // 夾宮後位
+
+  const oppoMajor = oppoPalace.majorStars.map(s => s.name);
+  const oppoMinor = oppoPalace.minorStars.map(s => s.name);
+  const oppoBad = oppoPalace.badStars.map(s => s.name);
+
+  // 三方四正全體星曜池
+  const allSanFangPalaces = [palace, oppoPalace, tri1Palace, tri2Palace];
+  const sanFangMajorStars = Array.from(new Set(allSanFangPalaces.flatMap(p => p.majorStars.map(s => s.name))));
+  const sanFangMinorStars = Array.from(new Set(allSanFangPalaces.flatMap(p => p.minorStars.map(s => s.name))));
+  const sanFangBadStars = Array.from(new Set(allSanFangPalaces.flatMap(p => p.badStars.map(s => s.name))));
+  const sanFangSihuaStars = allSanFangPalaces.flatMap(p => p.majorStars.filter(s => s.sihua || s.flowSihua).map(s => `${s.name}化${s.flowSihua || s.sihua}`));
+
+  // 兩鄰夾宮吉凶
+  const jiaStars = [...prevPalace.majorStars, ...prevPalace.minorStars, ...prevPalace.badStars,
+                    ...nextPalace.majorStars, ...nextPalace.minorStars, ...nextPalace.badStars].map(s => s.name);
+  const isJiaLu = (prevPalace.minorStars.some(s => s.name === '祿存') || prevPalace.majorStars.some(s => s.sihua === '祿')) &&
+                  (nextPalace.minorStars.some(s => s.name === '祿存') || nextPalace.majorStars.some(s => s.sihua === '祿'));
+  const isJiaGui = (prevPalace.minorStars.some(s => s.name === '天魁' || s.name === '天鉞') && nextPalace.minorStars.some(s => s.name === '天魁' || s.name === '天鉞'));
+  const isJiaYangTuo = (prevPalace.badStars.some(s => s.name === '擎羊' || s.name === '陀羅') && nextPalace.badStars.some(s => s.name === '擎羊' || s.name === '陀羅'));
+  const isJiaKongJie = (prevPalace.badStars.some(s => s.name === '地空' || s.name === '地劫') && nextPalace.badStars.some(s => s.name === '地空' || s.name === '地劫'));
+
   const starsSummary = [
-    '坐守主星：' + (majorStars.length > 0 ? majorStars.join('、') : '無主星 (借對宮星曜)'),
-    '吉星會聚：' + (minorStars.length > 0 ? minorStars.join('、') : '無特別吉星'),
-    '煞曜神煞：' + (badStars.length > 0 ? badStars.join('、') : '三方清吉無重煞'),
-    sihuaStars.length > 0 ? '四化引動：' + sihuaStars.join('、') : '本宮無引動四化'
+    '坐守主星：' + (majorStars.length > 0 ? majorStars.join('、') : `無主星 (借對宮【${oppoPalace.name}】${oppoMajor.join('、') || '星曜'}借星合參)`),
+    '三方四正吉曜：' + (sanFangMinorStars.length > 0 ? sanFangMinorStars.join('、') : '三方無會聚特別吉曜'),
+    '三方煞曜會照：' + (sanFangBadStars.length > 0 ? sanFangBadStars.join('、') : '三方四正清吉無重煞'),
+    '四化引動：' + (sanFangSihuaStars.length > 0 ? sanFangSihuaStars.join('、') : '三方無生年或行運四化引動'),
+    `對宮照會：【${oppoPalace.name}】(${oppoPalace.earthBranch}) 坐守 ${oppoMajor.join('、') || '無主星'}`
   ];
 
   // 計算該目標宮位的玄空飛星四化與自化
@@ -215,27 +244,21 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
         if (docStar && docStar.general) detailedExplanations.push(...docStar.general.slice(0, 3));
       });
     }
-    if (minorStars.includes('紅鸞') || minorStars.includes('天喜')) {
-      const peachStars = minorStars.filter(s => s === '紅鸞' || s === '天喜').join('與');
-      keyHighlights.push(`🌸 夫妻宮逢【${peachStars}】：正桃花正曜同度，天生自帶異性緣與浪漫魅力，感情互動甜蜜，逢流年大限吉化極利結髮連理。`);
+    // 講義第十五章：論婚姻切忌單宮單星論斷！「命宮是武曲七殺或廉貞貪狼，不能單看夫妻宮之善惡；對宮官祿與三方吉凶深切左右婚姻厚薄」
+    if (sanFangMinorStars.some(s => ['左輔', '右弼', '文昌', '文曲', '天魁', '天鉞'].includes(s))) {
+      const luckyInSanfang = sanFangMinorStars.filter(s => ['左輔', '右弼', '文昌', '文曲', '天魁', '天鉞'].includes(s));
+      keyHighlights.push(`🏛️ 夫妻宮三方四正會聚吉星【${luckyInSanfang.join('、')}】：講義明示吉星拱照可制化煞氣，夫妻有共同事業或社交圈，得貴人撮合調停，家道和睦。`);
+      detailedExplanations.push(`講義夫妻專論【三方四正吉曜拱照】：推斷婚姻不可僅執著夫妻宮單一宮位，講義第十五章強調須合參福德、官祿與遷移。三方四正逢【${luckyInSanfang.join('、')}】會照，主伴侶具備優良教養與事業才幹，遇磨合時能理性溝通或有長輩友人化解矛盾。`);
     }
-    if (minorStars.includes('天姚') || minorStars.includes('咸池')) {
-      const pStars = minorStars.filter(s => s === '天姚' || s === '咸池').join('、');
-      keyHighlights.push(`🌹 夫妻宮逢【${pStars}】：次桃花與風情曜會聚，伴侶極富幽默感與社交魅力，感情重視情調浪漫，亦需謹守分寸防桃色波折。`);
+    if (sanFangBadStars.some(s => ['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫', '化忌'].includes(s))) {
+      const badInSanfang = sanFangBadStars.filter(s => ['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫', '化忌'].includes(s));
+      detailedExplanations.push(`講義夫妻專論【三方四正煞曜會合評估】：三方四正逢【${badInSanfang.join('、')}】沖照。講義特別提醒：「煞星不可群聚，群聚則為禍尤深」。若本宮吉而三方煞多，屬於外在環境阻礙；若三方煞聚本宮無力，相處宜退一步、不宜意氣用事。`);
     }
-    if (badStars.includes('孤辰') || badStars.includes('寡宿')) {
-      const gStars = badStars.filter(s => s === '孤辰' || s === '寡宿').join('、');
-      keyHighlights.push(`🕯️ 夫妻宮逢【${gStars}】：主獨立清高，感情上容易各忙各的或聚少離多，宜主動製造生活共鳴與深度交心。`);
+    if (isJiaLu) {
+      keyHighlights.push('💎 夫妻宮得【雙祿夾宮】：夫妻宮兩鄰得祿存或化祿相夾，主配偶能帶旺家業財富，婚姻能得雙方原生家庭經濟助力。');
     }
-    if (badStars.includes('火星') || badStars.includes('鈴星')) {
-      const fireStars = badStars.filter(s => s === '火星' || s === '鈴星').join('與');
-      keyHighlights.push(`🔥 夫妻宮逢【${fireStars}】：講義第十五章明示配偶個性剛烈急躁、丹田有力、說話聲音宏亮。感情來得急去得快，易有口舌摩擦或配偶常有小病痛，相處宜退一步海闊天空。`);
-      detailedExplanations.push(`講義夫妻專論【火星與鈴星】：火星為「燃燒星」、鈴星為「爆炸星」。落入夫妻宮主配偶個性剛烈急躁、毛髮易有捲曲或牙齒皮膚敏感；兩人在溝通時容易因一時口氣不好而瞬間擦槍走火。單守或落陷時感情波折較多，日常相處需切記「生氣時先冷靜、少說刺耳狠話」，多欣賞伴侶行動力強、有魄力的優點。`);
-    }
-    if (badStars.includes('截空')) {
-      const hasKong = badStars.includes('地空') || badStars.includes('天空');
-      keyHighlights.push('夫妻宮逢【截空星】：講義第十五章明示「截空在夫妻宮，結婚意願較低；加逢天空星尤驗，甚至常無婚姻」，宜注重精神知己共鳴。');
-      detailedExplanations.push('講義夫妻專論【截空與空劫】：截空入夫妻宮，命主對世俗婚姻制度期待較淡、結婚意願低，或在感情進展到談婚論嫁時容易莫名受到阻礙拖延。相處宜給彼此足夠精神空間，順其自然。');
+    if (isJiaYangTuo) {
+      keyHighlights.push('⚠️ 夫妻宮受【羊陀相夾】：夫妻宮兩鄰受擎羊陀羅夾制，易受外界親友長輩非議或環境壓力牽制，感情需有自主定力。');
     }
     advice.push(badStars.length > 0 ? '💡【白話開運提醒】：本宮見【' + badStars.join('、') + '】小磨練。相處切忌「爭一時輸贏」，生氣時先冷靜半小時再去溝通，感情反而更甜。' : '💡【白話開運提醒】：宮位平穩，日常多製造專屬儀式感，互為最強後盾。');
 
@@ -289,14 +312,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       keyHighlights.push('財帛宮逢【截空星】：講義第三章載明「截空為截路空亡，於財帛宮主求財過程易有停滯、阻礙或財源中斷之煩惱」，宜踏實任職。');
     }
 
-    if (majorStars.includes('貪狼') && (badStars.includes('火星') || badStars.includes('鈴星'))) {
-      const starName = badStars.includes('火星') ? '火貪格' : '鈴貪格';
-      keyHighlights.push(`💰 財帛宮逢【${starName}】：講義第十章載明「火貪、鈴貪主爆發橫財」，求財具極強敏銳度與爆發力，易得意外機遇暴發，唯發後宜轉入實業房地產守成！`);
-      detailedExplanations.push(`講義財帛專論【${starName}】：貪狼與火星或鈴星同宮於財帛宮，形成著名的橫發格。講義指出此格在辰戌丑未四墓宮位爆發力最強，主有意外之財、橫發之機；但亦提醒「橫發後恐防橫破」，賺得大錢後務必見好就收，切忌賭性堅強或盲目擴大槓桿。`);
-    } else if (badStars.includes('火星') || badStars.includes('鈴星')) {
-      keyHighlights.push('財帛宮見【火星/鈴星】：求財行動力極快，但易有衝動消費或揮霍傾向，理財以守為攻，嚴防高風險投機。');
-      detailedExplanations.push('講義財帛專論【火星與鈴星】：火鈴入財帛宮主金錢流動劇烈，花錢常憑一時衝動，若無祿存吉星壓制，易有財來財去之象。宜設定自動定期定額儲蓄，強迫把流動資金鎖住。');
+    // 講義第十四章：推斷財運切忌單宮單星！「推斷財運好壞，財帛宮之外須兼參命宮三方四正之良窳，田宅宮(財庫)與福德宮(偏財/福報)之好壞」
+    const tianzhaiP = chart.palaces.find(p => p.name === '田宅宮');
+    const fudeP = chart.palaces.find(p => p.name === '福德宮');
+    const tzHasLucky = tianzhaiP?.majorStars.some(s => ['太陰', '天府', '武曲', '紫微'].includes(s.name)) || tianzhaiP?.minorStars.some(s => s.name === '祿存');
+    const fdHasShat = fudeP?.badStars.some(s => ['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫'].includes(s.name));
+
+    if (sanFangMinorStars.some(s => ['左輔', '右弼', '天魁', '天鉞', '祿存'].includes(s))) {
+      const luckyInSanfang = sanFangMinorStars.filter(s => ['左輔', '右弼', '天魁', '天鉞', '祿存'].includes(s));
+      keyHighlights.push(`💰 財帛宮三方四正會聚吉星【${luckyInSanfang.join('、')}】：講義第十四章指出三方吉星群聚，主進財管道多元寬廣，得貴人引薦與資金支持。`);
     }
+    if (tzHasLucky) {
+      keyHighlights.push('🏡 財庫合參（田宅宮見庫星/祿存）：講義明示「田宅是財庫與不動產所在，關乎能否積財置產」，財帛進財配合田宅庫旺，一生財富必然豐盈穩固！');
+    }
+    if (fdHasShat) {
+      detailedExplanations.push('講義財帛專論【合參福德宮】：福德宮主精神享受與偏財，若福德宮逢煞曜沖照，主內心常因金錢焦慮，或賺錢後容易因情緒化消費而流失，需修養心性以安財富。');
+    }
+    detailedExplanations.push(`【三方四正財局總覽】：本宮坐守【${majorStars.join('、') || '借對宮'}】，對宮【${oppoPalace.name}】照會【${oppoMajor.join('、') || '無主星'}】。三方吉曜（${sanFangMinorStars.slice(0, 4).join('、') || '無'}），三方煞忌（${sanFangBadStars.slice(0, 4).join('、') || '無'}）。講義強調：本宮無吉有煞只是賺錢辛苦，若三方有吉照會仍能白手成家！`);
     advice.push(badStars.includes('地空') || badStars.includes('地劫') ? '💡【白話開運提醒】：見空劫星，手頭流動大。最好的化解法就是「強迫儲蓄」或把錢換成保值不動產，平時少看投機明牌。' : '💡【白話開運提醒】：善用滾雪球效應進行穩健配置，財富積少成多。');
 
   // 3. 事業升遷
@@ -337,6 +369,17 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
       keyHighlights.push('官祿宮見【截空星】：大限或本命逢截空，工作推進偶有停滯擱延或做白工之感，行事宜提早佈局預留緩衝。');
       detailedExplanations.push('講義官祿專論【截空】：截空入官祿宮主行事易受阻礙或橫生枝節，大限逢之易有事業煩惱；唯心態宜沈穩應對，以慢打快即可化解。');
     }
+    // 講義第十三章：推斷事業運切忌單宮單星！「官祿宮主要顯示工作能力與態度，推斷事業運好壞，除了官祿宮外，須以命宮之三方四正作綜合研判」
+    if (sanFangMinorStars.some(s => ['左輔', '右弼', '天魁', '天鉞', '文昌', '文曲'].includes(s))) {
+      const luckyInSanfang = sanFangMinorStars.filter(s => ['左輔', '右弼', '天魁', '天鉞', '文昌', '文曲'].includes(s));
+      keyHighlights.push(`💼 官祿宮三方四正會聚吉曜【${luckyInSanfang.join('、')}】：講義明示吉曜相會主得長官提拔、部屬擁戴，事業格局宏大，名利雙收！`);
+      detailedExplanations.push(`講義官祿專論【三方四正格局綜合研判】：事業發展非單看官祿宮一宮，必須兼參對宮【${oppoPalace.name}】（外出機遇）及財帛宮（資金奧援）。三方會聚【${luckyInSanfang.join('、')}】，代表出外有貴人、資金運轉順暢，具備執掌大權之主管或創業潛質。`);
+    }
+    if (sanFangBadStars.some(s => ['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫', '化忌'].includes(s))) {
+      const badInSanfang = sanFangBadStars.filter(s => ['擎羊', '陀羅', '火星', '鈴星', '地空', '地劫', '化忌'].includes(s));
+      detailedExplanations.push(`講義官祿專論【三方四正煞曜會聚警示】：三方會照【${badInSanfang.join('、')}】。講義警示「煞星群聚則風波迭起，事與願違」，職場上宜戒除急躁孤傲，多與團隊協同作戰，遇挫折當作磨練筋骨。`);
+    }
+    detailedExplanations.push(`【三方四正事業局總綱】：官祿宮坐【${majorStars.join('、') || '借對宮'}】，對宮【${oppoPalace.name}】坐【${oppoMajor.join('、') || '無主星'}】。講義強調：「知命者善用天賦，本宮與三方吉凶互涉，吉多敢衝，煞多求穩，行事順應天時即可逢凶化吉」。`);
     advice.push('💡【白話開運提醒】：職場除了硬實力，口碑與情商更是推進器。多讚美團隊伙伴、把榮譽分給大家，升遷路上貴人自然源源不絕。');
 
   // 4. 讀書考試
@@ -558,6 +601,18 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
 
     // 講義專論深度斷語解說（僅輸出命中真實存在的星曜）
     detailedExplanations.push('【講義疾厄專論總綱】：講義第十七章指出：「疾厄宮顯示身體健康、疾病與基因遺傳。研判先天體質除了檢視疾厄宮外，亦應參看對宮父母宮（父母遺傳基因）及命宮、福德宮作綜合研判。」');
+    
+    // 兼參對宮父母宮遺傳基因與福德宮精神健康
+    const parentsPalace = chart.palaces.find(p => p.name === '父母宮');
+    const fudePalace = chart.palaces.find(p => p.name === '福德宮');
+    if (parentsPalace && parentsPalace.badStars.length > 0) {
+      const pBads = parentsPalace.badStars.map(s => s.name);
+      detailedExplanations.push(`講義疾厄合參【對宮父母宮遺傳基因】：對宮父母宮逢【${pBads.join('、')}】。講義強調疾厄與父母為一表一裡，父母宮見煞代表原生家庭遺傳體質需留意預防相關慢性代謝或體質敏感。`);
+    }
+    if (fudePalace && fudePalace.badStars.some(s => ['擎羊', '陀羅', '火星', '鈴星', '天刑', '陰煞'].includes(s.name))) {
+      detailedExplanations.push('講義疾厄合參【福德宮身心平衡】：福德宮主精神潛意識與腦神經壓力。福德宮見煞星照會，易有精神緊繃、失眠多夢或自尋煩惱，講義指出「心病需從心醫」，調節心理壓力即是調養身體之本。');
+    }
+
     if (healthMajor.length > 0) {
       healthMajor.forEach(star => {
         const starItems = (healthData.stars as any)?.[star];
@@ -835,6 +890,42 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     const hasJiInLife = lifeP.majorStars.some(s => s.sihua === '忌' || s.flowSihua === '忌');
     if (hasLuInLife && (hasAnyVoidInLife || hasJiInLife)) {
       matchedPatterns.push('【祿逢沖破格】：講義第三章與第十章記載「化祿或祿存最怕逢地空、地劫、截空及化忌星，為祿逢沖破，顯示財來財去、先有後無」。賺錢容易但留財不易，理財首重收斂，宜強迫購置不動產守財。');
+    }
+
+    // 15. 講義第十二章格局高低總綱（上格/中格/下格與身宮統整，徹底擺脫單宮單星論斷）
+    const bodyPalace = chart.palaces.find(p => p.isBodyPalace) || lifeP;
+    const bodyMajor = bodyPalace.majorStars.map(s => s.name);
+    const bodyBad = bodyPalace.badStars.map(s => s.name);
+
+    let patternGrade = '';
+    let gradeDesc = '';
+    if (lifeMajor.length > 0 && SanFangMinor.length >= 3 && SanFangBad.length <= 1) {
+      patternGrade = '【上格之命・吉曜成群】';
+      gradeDesc = '命宮主星得地，三方四正吉星會聚、煞星稀少。講義載明：「命宮、身宮有正曜居廟旺，見吉星或化吉，三方四正又有吉會，為上格之命」，一生根基深厚，遇順境大發，遇險阻凶中有救。';
+    } else if (lifeMajor.length === 0 && SanFangMinor.length >= 2) {
+      patternGrade = '【借宮安命・次上之命】';
+      gradeDesc = '命無正曜借對宮安身，三方四正得吉星拱照。講義載明：「命無正曜，無重煞相聚，三方有吉會，為次上之命，富貴仍為可期」，行事圓融機動，出外發展大有可為。';
+    } else if (SanFangBad.length >= 4) {
+      patternGrade = '【吉凶參半・逆風破浪格】';
+      gradeDesc = '三方四正煞星較多（羊陀火鈴空劫相會）。講義第十二章嚴厲告誡：「煞星不可群聚，群聚則為禍尤深；命陷弱有煞，乃造化限制其福氣，行事切忌貪功躁進，修身蓄德方能破繭而出」。';
+    } else {
+      patternGrade = '【平實穩健・中格之命】';
+      gradeDesc = '命宮星曜安穩，吉凶星曜相伴。講義載明：「無凶煞暴烈坐守，亦無眾吉群聚，為中格之命」，不走偏門暴發，一步一腳印，晚運安泰。';
+    }
+
+    keyHighlights.push(`🌟 先天命局總綱：${patternGrade} — ${gradeDesc}`);
+    detailedExplanations.push(`【講義第十二章・命身與三方四正整體格局評定】：
+${gradeDesc}
+此外，兼看【身宮】（${bodyPalace.name}坐${bodyMajor.join('、') || '借對宮'}）：命宮管前半生先天基因，身宮管後半生後天作為。身宮${bodyBad.length === 0 ? '清吉無煞，主後天努力能開花結果、行運越走越穩' : '遇煞星磨礪，主中晚年處事宜持盈保泰、注重健康養生'}。`);
+
+    if (isJiaLu) {
+      keyHighlights.push('💎 命宮逢【雙祿夾命】：命宮兩鄰得祿存或化祿相夾，講義明示主一生衣食豐足、福祿自來。');
+    }
+    if (isJiaGui) {
+      keyHighlights.push('👑 命宮逢【左右/魁鉞夾命】：長輩長官貴人護佑，出入多得助力。');
+    }
+    if (isJiaYangTuo) {
+      keyHighlights.push('⚠️ 命宮受【羊陀夾命】：行事易受環境牽絆制約，需防被親近之人牽連，凡事宜自立自強。');
     }
 
     if (matchedPatterns.length > 0) {
