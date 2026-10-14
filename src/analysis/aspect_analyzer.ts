@@ -58,6 +58,7 @@ export interface AspectResult {
   title: string;
   scopeDesc: string;
   targetPalaceName: string;
+  originalPalaceName?: string;
   targetBranch: string;
   starsSummary: string[];
   palaceSihuaSummary?: {
@@ -221,6 +222,15 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     plainStory
   };
 
+  // 提取本宮四化、流曜、吉凶星狀態，供各面向在流年/大限/本命生成客製化通俗白話解讀
+  const palaceLu = palace.majorStars.find(s => s.flowSihua === '祿' || s.sihua === '祿')?.name;
+  const palaceQuan = palace.majorStars.find(s => s.flowSihua === '權' || s.sihua === '權')?.name;
+  const palaceKe = palace.majorStars.find(s => s.flowSihua === '科' || s.sihua === '科')?.name;
+  const palaceJi = palace.majorStars.find(s => s.flowSihua === '忌' || s.sihua === '忌')?.name;
+  const palaceFlowStars = palace.flowStars ? palace.flowStars.map(s => s.name) : [];
+  const palaceAllBad = Array.from(new Set([...badStars, ...palaceFlowStars]));
+  const starNamesStr = majorStars.length > 0 ? majorStars.join('與') : '無主星(借對宮' + (oppoMajor.join('與') || '主星') + ')';
+
   // 1. 婚姻感情
   if (aspect === 'marriage') {
     title = modeText + ' 婚姻感情與伴侶專論';
@@ -228,9 +238,22 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = majorStars.length > 0 ? '【白話說給你聽】：你在感情上非常看重對方的「' + (STAR_PLAIN_DESC[majorStars[0]]?.strength || '個人魅力') + '」。你天生會被有才華、有魄力的人吸引，但相處時「' + (STAR_PLAIN_DESC[majorStars[0]]?.weakness || '彼此性格需要磨合') + '」，多點包容才能長長久久。' : '【白話說給你聽】：你的夫妻宮沒有主要星曜，代表你天生的擇偶條件很有彈性、比較隨緣，容易受身邊親友或相遇氛圍影響，感情往往順其自然展開。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年感情大白話】：此步大限夫妻宮重疊在你的本命【' + originalPalaceName + '】。這十年間感情會是人生的一大重心。若有化祿或吉星，這十年婚緣極旺、容易成家立業；若會煞星，感情溝通就要少點固執、多點傾聽。';
+      let blDetails = `【這十年感情大白話】：此步大限夫妻宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間感情如沐春風，單身極利結識良緣成家，已婚者得配偶助力攜手致富；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間感情容易因執念或觀念差異產生考驗，溝通切記少翻舊帳、多給彼此空間；`;
+      else blDetails += `這十年間感情格局穩中求進，著重兩人生活步調與三觀之契合；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會聚【${palaceAllBad.join('、')}】，相處切忌意氣用事，多點傾聽是感情長久之鑰。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年感情運白話】：' + chart.targetYear + '年流年夫妻宮走到本命【' + originalPalaceName + '】。今年感情氣場特別活躍，有對象者講話放軟身段，單身者出外或社交容易有心動契機！';
+      let fyDetails = `【今年感情運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年夫妻宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年感情桃花氣場大吉，單身者出外社交極易遇到心動良緣，有對象者感情甜蜜升溫、利於談婚論嫁；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年相處中伴侶主導欲較強，容易各執己見，日常多讓一步、讓對方說了算即能化解磨擦；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年感情平順和諧，伴侶是你的知心貴人，遇到困難多與另一半商量能得良好啟發；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年感情易有情緒波動或誤會猜忌，有對象者慎防言語傷人，單身者慎防爛桃花陷阱；`;
+      else fyDetails += `今年感情平穩隨和，互動重在日常細水長流與生活儀式感；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 且遇【${palaceFlowStars.join('、')}】同度，相處講話放軟身段，避免在氣頭上做重大決定。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 逢【${palaceAllBad.join('、')}】小磨礪，多點包容體貼即可轉化爭執。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const p = STAR_PLAIN_DESC[star];
@@ -269,9 +292,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = majorStars.length > 0 ? '【白話說給你聽】：你天生賺錢靠的是「' + (STAR_PLAIN_DESC[majorStars[0]]?.fortune || '個人專長能力') + '」。你有自己獨特的賺錢路數，最忌跟風盲從。只要把心思放在懂的領域，累積財富水到渠成。' : '【白話說給你聽】：你的先天財帛宮無主星，代表一生財路多元靈活，賺錢適合靠隨機應變、整合資源或跟著強者團隊走，避免孤注一擲。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年財富大白話】：此步大限財帛宮落在本命【' + originalPalaceName + '】。這十年間是建立個人資產的重要週期，適合穩扎穩打增加被動收入或核心技能，切忌過度槓桿與衝動投機。';
+      let blDetails = `【這十年財富大白話】：此步大限財帛宮進入本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】坐鎮財帛，這十年間進財渠道暢通、財源滾滾，利於擴大本業收益或穩健佈局被動收入；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間掌控慾強、開拓財源魄力驚人，敢於開創事業獨立掌管資金；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間求財需防突發性周轉緊縮或借貸失利，理財切記強迫儲蓄、遠離高槓桿投機；`;
+      else blDetails += `這十年間財運以穩扎穩打為原則，適合深耕專長技術累積財富；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會照【${palaceAllBad.join('、')}】，賺到錢務必優先轉入保值資產，防衝動破耗。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年財運白話】：' + chart.targetYear + '年流年財帛宮進入本命【' + originalPalaceName + '】。今年進財有機會，但開銷也不小。建議今年賺到錢先留三成做緊急備用金，看緊荷包不借貸。';
+      let fyDetails = `【今年財運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年財帛宮進入本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `喜逢流年【${palaceLu}化祿】，今年進財動能強勁、業績提成或額外進帳機運極佳，看準機會果斷爭取收穫豐厚！`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年在財務上極欲展現主控力，爭取加薪、簽約或擴大商機企圖心旺盛，憑實力賺取正財；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年適合以口碑聲譽、專業認證或長輩貴人指引求財，財務平穩細水長流；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年財運壓力稍大，容易有預料之外的大額開銷、破財或回款延宕，切忌盲目跟風投資借貸；`;
+      else fyDetails += `今年財運波瀾不驚，踏實做好本職工作，收支平衡即是福氣；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 宮內逢【${palaceFlowStars.join('、')}】同度，手頭流動性大，建議賺到錢先留三成做緊急備用金。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 遇【${palaceAllBad.join('、')}】沖照，看緊錢包、減少非必要衝動消費。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const p = STAR_PLAIN_DESC[star];
@@ -338,9 +375,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = majorStars.length > 0 ? '【白話說給你聽】：在職場上你是屬於「' + (STAR_PLAIN_DESC[majorStars[0]]?.role || '實力派') + '」型人才！工作時最大的優勢是「' + (STAR_PLAIN_DESC[majorStars[0]]?.strength || '積極專注') + '」，只要找對能讓你展現主導權或發揮創意的舞台，成就不可限量。' : '【白話說給你聽】：你的官祿宮沒有主星，說明你在職場上身段柔軟、適應力極強。你適合跨界整合、擔任團隊的靈魂黏著劑，職場路走得越廣，價值越高。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年事業大白話】：此步大限官祿宮坐落在本命【' + originalPalaceName + '】。這十年間是事業升級打怪的重要階段，容易有責任加重、掌權甚至轉型獨立創業的契機，扛住壓力就能站上新高點！';
+      let blDetails = `【這十年事業大白話】：此步大限官祿宮坐入本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間職場機遇多采多姿，業務拓展順遂、貴人提攜，是躍升主管或轉型創業的黃金期；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間權力慾與責任感加重，具備獨當一面掌大權之機運，雖操勞但成就斐然；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間職場責任沉重、易遇瓶頸考驗或人事掣肘，凡事少抱怨、多提具體方案，以守代攻；`;
+      else blDetails += `這十年間事業走勢沉穩，適合累積專業護城河，持之以恆必有回響；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內逢【${palaceAllBad.join('、')}】磨礪，做事切忌急功近利，慎防與長官同仁摩擦。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年工作運白話】：' + chart.targetYear + '年流年官祿宮進駐本命【' + originalPalaceName + '】。今年職場能見度提升，主動爭取重要專案容易被主管看見，遇事少抱怨、多提解決方案就是升遷密碼！';
+      let fyDetails = `【今年工作運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年官祿宮進駐本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年職場能見度爆棚！主動承接關鍵專案容易立功，升遷調薪機遇大好，有跳槽打算者易得優渥新職；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年在團隊中具備決策威嚴與說服力，領導力倍受矚目，敢於爭取掌舵大局便能脫穎而出；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年以專業技能、名譽聲望、考核評優見長，容易獲得主管公開表揚與同儕信任；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年職場工作壓力大、事情多變且易有加班繁重或長官挑剔之感，切忌衝動辭職，沉著應變是轉運關鍵；`;
+      else fyDetails += `今年工作節奏平順扎實，做好日常交付、維繫良好職場人際即能步步為營；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同宮，行事需防粗心毛躁或文書細節疏漏，多複核一次更穩妥。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內逢【${palaceAllBad.join('、')}】小阻力，少言多行、沉著應對即可化險為夷。`;
+      plainSummary = fyDetails;
     }
     if (majorStars.length === 0) {
       detailedExplanations.push('官祿宮無主星：職場生涯具靈活性，可多角化發展或擔任幕僚輔佐角色，宜跟隨具實力之領導者打拼。');
@@ -407,9 +458,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
         plainSummary = '【彈性靈活備考白話說給你聽】：你的官祿宮無主星，讀書與考試環境容易受同儕氛圍影響。找自律的讀書夥伴或參加圖書館衝刺班，能大幅提升專注力。';
       }
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年考運大白話】：此步大限官祿宮重疊在你的本命【' + originalPalaceName + '】。這十年間利於考取含金量高的專業證照或完成學業學位，累積的專業認證就是你下半場躍升的底氣。';
+      let blDetails = `【這十年考運大白話】：此步大限官祿宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (hasKe || palaceKe) blDetails += `逢【化科】科名星照臨，這十年間求學深造、專業考證或國考升等運勢極強，容易榜上有名；`;
+      else if (hasWenchang || hasWenqu || hasKui || hasYue) blDetails += `坐會【${[hasWenchang ? '文昌' : '', hasWenqu ? '文曲' : '', hasKui ? '天魁' : '', hasYue ? '天鉞' : ''].filter(Boolean).join('、')}】考星貴人，這十年間利於鑽研專精領域、獲取權威認證；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，應試或進修需付出加倍苦工，防臨場粗心卡關，以熟練度克制緊張；`;
+      else blDetails += `這十年間考運完全取決於平日耕耘積累，穩扎穩打自能水到渠成；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內逢【${palaceAllBad.join('、')}】，備考需注重規律作息與心態調適。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年考運面試白話】：' + chart.targetYear + '年考運氣場聚焦於臨場發揮與心態調適。考前一週維持規律作息，面試時展現真誠自信，容易吸引考官青睞。';
+      let fyDetails = `【今年考運面試白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年官祿進入本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceKe || hasKe) fyDetails += `喜逢流年【化科】吉星高照！今年考運與面試氣場大順，才思敏捷、臨場反應極佳，容易深得面試評審與考官青睞；`;
+      else if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年求知慾旺盛，應考心態輕鬆自信，競賽或升等考核極易發揮實力脫穎而出；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年考試臨場容易緊張焦慮、看錯題目或思維打結，考前一週務必反覆模擬刷題、檢查文具證件；`;
+      else if (hasWenchang || hasWenqu || hasKui || hasYue) fyDetails += `坐會【${[hasWenchang ? '文昌' : '', hasWenqu ? '文曲' : '', hasKui ? '天魁' : '', hasYue ? '天鉞' : ''].filter(Boolean).join('、')}】，文風正盛，臨場有貴人相扶，發揮正常水準即能過關；`;
+      else fyDetails += `今年考運考驗實打實的平日準備，考前維持規律作息，不打疲勞戰就是致勝法寶；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 宮內逢【${palaceFlowStars.join('、')}】同度，考試切忌粗心趕時間，務必留10分鐘全面檢查試卷。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 遇【${palaceAllBad.join('、')}】小磨練，臨場深呼吸穩定心神便能逢凶化吉。`;
+      plainSummary = fyDetails;
     }
 
     // 核心提要（嚴格依據命盤星曜）
@@ -435,9 +500,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = majorStars.includes('太陰') || majorStars.includes('天府') || majorStars.includes('武曲') ? '【白話說給你聽】：你是標準的「庫星入田宅」，自帶置產守財運！一生中很有機會買下屬於自己的舒適好房，房產會成為你最安心的金庫。' : '【白話說給你聽】：你的田宅星情重視「居住環境的舒適感與自由度」。買房不必好高騖遠，選生活機能方便、採光通風好的地段，住得開心運氣自然旺。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年置產大白話】：大限田宅宮坐入本命【' + originalPalaceName + '】。這十年間置產動能強烈，有極高機率完成買房、換大屋或資產重組的願望，但要算好房貸現金流。';
+      let blDetails = `【這十年置產大白話】：此步大限田宅宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】入庫，這十年間置產購屋運極佳，容易添購新房、田產增值，是建立穩固不動產資產的黃金十年；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間有擴建、買大屋或全面翻修裝潢之魄力，能掌握居家資產主控權；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間買房需量力而行，防房貸壓力過重或房屋修繕漏水問題，合約產權務必核實；`;
+      else blDetails += `這十年間家宅運勢平穩，適合按部就班累積首付款或優化居住品質；`;
+      if (palaceAllBad.some(s => ['地空', '地劫', '火星', '鈴星'].includes(s))) blDetails += ` 宮內會照【${palaceAllBad.filter(s => ['地空', '地劫', '火星', '鈴星'].includes(s)).join('、')}】，防祖業變動或衝動投資房產，自住買房方能聚財。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年家宅運白話】：' + chart.targetYear + '年田宅氣數變動，可能有搬家、重新裝潢布置或添置大型家電的計畫，多整理居家雜物能改善全家氣場。';
+      let fyDetails = `【今年家宅運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年田宅宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年家宅生輝、資產氣場大旺！有利於買賣房屋、簽約過戶或迎來家宅添丁喜事；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年對居家環境有強烈整頓慾望，可能有更換格局、大興土木重新裝潢或添置高階家電之計畫；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年家宅安寧斯文、鄰里關係和睦，家庭成員有金榜題名或聲譽喜訊；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年家宅需防管線漏水、家電故障修繕，或因房產租約與家人產生爭執，凡事包容忍讓以和為貴；`;
+      else fyDetails += `今年田宅氣場平實安泰，多整理居家雜物、保持玄關明亮，能有效提升全家元氣；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，出門注意關好水電門窗，看房簽約務必審閱條款細節。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 逢【${palaceAllBad.join('、')}】小磨礪，隨手修繕維護即可守住財庫。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const docStar = (houseData.stars as any)[star];
@@ -463,9 +542,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = majorStars.length > 0 ? '【白話說給你聽】：你的孩子天生帶有「' + (STAR_PLAIN_DESC[majorStars[0]]?.role || '獨立獨特') + '」的特質，個性上「' + (STAR_PLAIN_DESC[majorStars[0]]?.strength || '很有主見') + '」。教育他們不能用強壓命令，多用「朋友般的平等討論」引導，孩子長大會非常有出息。' : '【白話說給你聽】：你的子女宮無主星，代表你對子女的期望非常開明隨和，不會把自己的框架硬套在孩子身上。給孩子自由探索的空間，兩代關係反而親密無間。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年親子大白話】：此步大限子女宮落在本命【' + originalPalaceName + '】。這十年間子女成長變化迅速，是建立孩子價值觀與深層信任的黃金十年。多花時間陪伴傾聽，少嘮叨。';
+      let blDetails = `【這十年親子大白話】：此步大限子女宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間求子生育緣分極佳，子女乖巧聰穎、親子互動充滿歡聲笑語；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間子女獨立性與自主意識極強，教育宜引導發揮潛力、少用高壓命令；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間父母容易為子女升學健康過度操心牽掛，需學會放手信任孩子；`;
+      else blDetails += `這十年間親子互動平順，著重身教重於言教、陪伴孩子探索志向；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會聚【${palaceAllBad.join('、')}】，兩代溝通需戒除嘮叨與急躁，多做朋友般的傾聽。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年子女運白話】：' + chart.targetYear + '年親子互動氣場活絡。今年多鼓勵孩子發揮所長，參加戶外活動或親子旅遊，能大幅增進兩代感情！';
+      let fyDetails = `【今年子女運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年子女宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年有孕育新生命的良好契機，子女在學業才藝上有亮眼表現，親子同遊氣氛歡樂；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年孩子主見較多、容易有叛逆或爭取獨立之舉，多給予肯定與決策權即可轉化為成長動能；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年子女考運順遂、文質彬彬，在學校或同儕間深得老師長輩喜愛；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年容易因孩子學習起伏、生活作息或情緒問題而操碎了心，切忌心急責罵，給予溫暖陪伴；`;
+      else fyDetails += `今年親子互動溫馨平實，日常多鼓勵孩子發展興趣，家庭氛圍自然和樂融融；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同宮，外出活動多留意孩子跌撞運動安全。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內會照【${palaceAllBad.join('、')}】小磨礪，多點耐心與引導即可逢凶化吉。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const docStar = (childrenData.stars as any)[star];
@@ -484,9 +577,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = minorStars.includes('天馬') || majorStars.includes('太陽') || majorStars.includes('貪狼') ? '【白話說給你聽】：你是典型的「動則得咎、動則生財」！你適合多出外走動、出差甚至移居外地，外面的世界越大，你的舞台與貴人就越多。' : '【白話說給你聽】：你在外處事沉穩低調，適合在熟悉的環境中紮根深耕。出外旅遊或洽公以做好充分規劃為主，行事按部就班就能平安順遂。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年出外運大白話】：此步大限遷移宮位氣場活躍，這十年間有強烈的驛馬動能，非常容易發生搬遷、出國留學、外派或跨區域開拓市場的機遇，大膽跨出舒適圈收穫豐碩！';
+      let blDetails = `【這十年出外運大白話】：此步大限遷移宮位重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】遠行生財，這十年間具備強烈的外出拓展、出國留學或異地發展運勢，外地貴人極多、越動越旺；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間出外能獨當一面開拓市場、執掌要職，在對外舞台上大展身手；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間出差遠行易奔波勞碌、防異鄉水土不服或交際是非，出門在外宜凡事求穩、低調行事；`;
+      else blDetails += `這十年間出外際遇穩健，按部就班做好規劃便能廣結善緣；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會照【${palaceAllBad.join('、')}】，出差遠行注重行車安全，不宜因逞快而涉險。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年遠行出外白話】：' + chart.targetYear + '年出外能見度高。多外出拜訪客戶、拓展朋友圈容易有意外驚喜，出門開車走路遵守交通規則，平安順遂。';
+      let fyDetails = `【今年遠行出外白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年遷移宮走入本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年出外貴人緣爆棚！差旅出遊多有驚喜收穫，拜訪客戶或跨界社交極易促成新機遇；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年在外做事敢衝敢拼、氣場強大，主動開闢新市場或爭取外地業務能取得主導權；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年出外名聲遠播、容易遇斯文君子貴人相助，差旅考察收穫豐碩；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年外出遠行容易遭遇交通延誤、行程變動或水土不服，行前務必買妥保險、做好備案；`;
+      else fyDetails += `今年出外氣場平穩，日常開車通勤遵守交規，做好規劃即可平安順遂；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，出門走路開車多看一眼，防跌撞碰傷。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內逢【${palaceAllBad.join('、')}】小波折，凡事預留半小時彈性時間即可從容不迫。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const docStar = (travelData.stars as any)[star];
@@ -508,9 +615,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = majorStars.includes('天同') || majorStars.includes('天梁') ? '【白話說給你聽】：你天生自帶「懂享受、有福報」的靈魂！遇到煩惱容易看開，喜歡有品味的生活。只要少鑽牛角尖，你的日子會過得比大部分人都更怡然自得。' : '【白話說給你聽】：你的責任心很強，常常把事情往自己身上攬，容易有「想太多、停不下來」的精神內耗。學會適度放手、給自己放空時間，幸福感會翻倍。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年心靈大白話】：此步大限福德宮提醒你：這十年是滋養精神靈魂的關鍵階段。除了拼世俗成就，一定要培養一兩個能讓自己完全沉浸放鬆的興趣嗜好。';
+      let blDetails = `【這十年心靈大白話】：此步大限福德宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間內心愉悅豁達、懂得享受生活品味，精神世界富足常樂；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間好勝心強、自我要求高，需防精神緊繃過度，宜學會適時放空；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間心理壓力偏大、容易有瞻前顧後或失眠多慮現象，多親近大自然與正信佛法修心解壓；`;
+      else blDetails += `這十年間精神狀態沉穩，培養一兩門長期的心靈嗜好將為你帶來長久幸福感；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內逢【${palaceAllBad.join('、')}】煞曜干擾，需防自尋煩惱，定期給心靈斷捨離。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年福氣情緒白話】：' + chart.targetYear + '年情緒起伏較受外界人事影響。每週給自己安排「無手機干擾的靜心時間」，散步泡澡聽音樂，把元氣補滿。';
+      let fyDetails = `【今年福氣情緒白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年福德宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年心情開朗舒暢，容易感受到生活中的小確幸，多聚餐、旅遊或培養興趣能讓運氣好上加好！`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年對自我期望甚高、容易給自己施加壓力，記得「盡力而為、不苛求完美」；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年心境恬淡有雅興，適合閱讀、文藝創作或品茗冥想，精神層次大幅提升；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年情緒起伏較大、易受外界人事影響而焦慮失眠，每週給自己安排「斷網靜心日」，多曬太陽散步；`;
+      else fyDetails += `今年心境祥和安寧，多珍惜當下擁有的平淡幸福，知足者常樂；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，夜晚少看刺激訊息或手機，維護良好睡眠品質。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內會照【${palaceAllBad.join('、')}】小情緒，遇事閉眼深呼吸三回即可撫平心波。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const docStar = (blessingData.stars as any)[star];
@@ -526,9 +647,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = badStars.length > 0 ? '【白話說給你聽】：你重情重義，但容易「交友不設防」。在人際或合夥上務必「親兄弟明算帳」，白紙黑字寫清楚，才不會真心換絕情。' : '【白話說給你聽】：你的人緣相當不錯，待人真誠和善。在朋友圈容易受到同儕喜愛，多參與高質量社群能帶來意想不到的機遇。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年人際大白話】：此步大限朋友宮落在本命【' + originalPalaceName + '】。這十年間社交圈會大洗牌，會淘汰酒肉朋友，結識更多具備社會資源或志同道合的事業伙伴。';
+      let blDetails = `【這十年人際大白話】：此步大限奴僕宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間人脈廣闊、朋友部屬得力，多結識具備資源的合作夥伴；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間容易與強勢有魄力的人結交或擔任團體領導，需留意尊重同儕意見；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間交友需有防人之心，切忌替朋友作保、借貸或無合約合夥，防遭背刺牽累；`;
+      else blDetails += `這十年間社交圈去蕪存菁，留下真正志同道合的真心朋友最重要；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會聚【${palaceAllBad.join('、')}】，人際合夥切記「親兄弟明算帳」，白紙黑字防範是非。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年社交運白話】：' + chart.targetYear + '年流年交友宮氣場活絡。拓展人脈能有新啟發，但合夥出資需格外審慎，務必留心合約條款與資金流向。';
+      let fyDetails = `【今年社交運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年奴僕宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年社交朋友圈熱絡生輝！出外廣結善緣、容易得朋友同儕提供實質商機與助力；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年在團體中主導話語權強，與合夥人或部屬互動需少點命令語氣、多點同理共識；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年朋友群多文人雅士或可靠貴人，社交重在經驗交流與聲譽加分；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年人際關係容易踩雷或被朋友合約、借貸牽連拖累，聚會少聊八卦、不介入他人利益紛爭；`;
+      else fyDetails += `今年人際往來平淡真誠，保持君子之交淡如水，即能自在安泰；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，合作分工宜清楚明確，避免因權責不清引發口角。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內會照【${palaceAllBad.join('、')}】小是非，學會婉拒無效社交能避開諸多紛擾。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const docStar = (friendsData.stars as any)[star];
@@ -548,9 +683,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = minorStars.includes('天魁') || minorStars.includes('天鉞') || majorStars.includes('天梁') ? '【白話說給你聽】：你自帶強大的「長輩與長官貴人運」！在學校或職場上容易得到長輩疼愛與貴人賞識，遇困難多向長官或長輩請益，能迅速逢凶化吉。' : '【白話說給你聽】：你與長輩或手足相處上都很有自己的主見，有時容易因代溝或說話太直接而有摩擦。多用傾聽與關心代替爭辯，孝順父母就是最好的改運之道。';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年長上大白話】：此步大限父母宮落在本命【' + originalPalaceName + '】。這十年間長輩主管對你的事業決策影響深遠，同時也需多花心思關懷父母健康，陪伴是最好的孝敬。';
+      let blDetails = `【這十年長上大白話】：此步大限父母宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間深得長輩長官疼愛提拔，公家證照或印鑑文書運大吉；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，這十年間長輩主管要求嚴苛、主導強勢，宜虛心受教轉化為自身實力；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間需多花時間關懷父母長輩健康，與主管相處慎防誤會或文書細節疏失；`;
+      else blDetails += `這十年間長上緣分平順，多盡孝道、常保關懷是累積陰德福報之源；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會照【${palaceAllBad.join('、')}】，與長輩溝通語氣放軟，各類合約簽署務必逐字審閱。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年主管文書白話】：' + chart.targetYear + '年長官緣尚佳，各類合約、公家證照或印鑑簽署要看清細則條款，防範文書細節失誤。';
+      let fyDetails = `【今年主管文書白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年父母宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年長官緣極佳、容易得主管器重賞識，各類公務認證、合約申請皆有貴人相助；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年長輩主管指令明確且要求高，積極任事、主動匯報進度能迅速博得認可；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年公文考試、專利證書或印鑑審批順暢，名聲清白體面；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年容易因長官挑剔感到委屈，公文合約簽約要字字推敲，出門亦需留心長輩長者健康安康；`;
+      else fyDetails += `今年主管與長輩關係平和，做好本分工作、主動問候長輩就是最佳處世法；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，簽約或辦理各類證照證券宜親自複查，防細節疏漏。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內逢【${palaceAllBad.join('、')}】小磨礪，孝順體貼是化解一切代溝的鑰匙。`;
+      plainSummary = fyDetails;
     }
     majorStars.forEach(star => {
       const docStar = (parentsData.stars as any)[star];
@@ -580,9 +729,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
         plainSummary = '【先天體質白話說給你聽】：你的先天體質彈性大、適應力強，無特定頑疾基因；但抵抗力易受生活節奏與作息起伏影響，保持心情愉悅與規律作息是最佳良方。';
       }
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年養生大白話】：此步大限疾厄宮提醒你：身體代謝開始進入新階段，少吃油膩重鹹、多喝水少喝含糖飲料，注重腸胃與睡眠品質是這十年的長壽密碼。';
+      let blDetails = `【這十年養生大白話】：此步大限疾厄宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】，這十年間體力精力充沛，但需防營養過剩、發福或三高慢性代謝問題，飲食宜清淡；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】，體質耐力強、容易過勞透支體能，切忌熬夜拼命，需建立定時運動與休息節奏；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】，這十年間身體機能代謝較弱、容易有特定臟腑慢性病灶或免疫力低下，務必落實年度健康檢查；`;
+      else blDetails += `這十年間身體機能平穩，養成少油少鹽、規律作息與喝溫水的好習慣是長壽密碼；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會照【${palaceAllBad.join('、')}】，注重筋骨伸展，出門開車走路防碰撞意外。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年健康運白話】：' + chart.targetYear + '年行運要注意作息規律，避免長時間低頭滑手機引起肩頸僵硬。出門開車走路多看一眼，平平安安就是最大的福氣。';
+      let fyDetails = `【今年健康運白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年疾厄宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `逢流年【${palaceLu}化祿】，今年胃口好、心情佳，但需留意體重與甜食糖分攝取，保持適度運動防發胖；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】，今年體力充沛但容易因工作繁重出現肌肉緊繃、肩頸僵硬，睡前多做拉筋放鬆；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】，今年健康運安泰、就算身體稍有微恙也容易遇良醫妙手回春，按時調養即無大礙；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】，今年容易有抵抗力偏弱、過度疲倦、腸胃不適或舊疾復發之警訊，忌暴飲暴食與熬夜透支；`;
+      else fyDetails += `今年健康氣場平實安泰，平日作息規律、每天抽空快走20分鐘就是最棒的養生；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，出外防跌撞刀傷或運動扭傷，出門走路多看一眼。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 宮內會聚【${palaceAllBad.join('、')}】小隱患，定期健康檢查、平平安安就是最大的福氣。`;
+      plainSummary = fyDetails;
     }
 
     // 核心提要（依據疾厄宮實際星曜精準輸出）
@@ -687,9 +850,27 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
 
       plainSummary = summaries.join('\n\n');
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年性靈因果大白話】：此步大限行運引動因果氣數。講義指出大限行至玄學、煞曜或陰煞宮位時，是化解宿世業債、沉澱心性、提升智慧的黃金十年。非常適合研讀正信佛法、修持經咒或布施利他，以修行的慈悲心化解世俗的奔波與摩擦。';
+      let blDetails = `【這十年性靈因果大白話】：此步大限福德宮重疊本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceAllBad.some(s => ['陰煞', '天刑', '地空', '地劫'].includes(s))) {
+        blDetails += `大限會逢【${palaceAllBad.filter(s => ['陰煞', '天刑', '地空', '地劫'].includes(s)).join('、')}】，講義指出行運引動宿世業債與玄學仙骨，是沉澱心性、化解阻礙與修行智慧的關鍵十年；`;
+      } else {
+        blDetails += `這十年間心靈磁場安泰，非常適合研讀正信佛法、哲理經典，培養慈悲心與定力；`;
+      }
+      blDetails += ` 以「甘願受、歡喜還」的心態面對世俗摩擦，多行暗德布施，功德最為殊勝。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年開運祈福白話】：' + chart.targetYear + '年心靈磁場轉化。講義提醒流年行運逢煞曜或陰煞時，心思容易敏感浮躁、易招小人暗害；切忌去磁場不良場所，在家中安奉祖先、多行暗德布施，即能逢凶化吉。';
+      let fyDetails = `【今年開運祈福白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年福德宮走到本命【${originalPalaceName}】，坐守【${starNamesStr}】。`;
+      if (palaceAllBad.some(s => ['陰煞', '天刑', '地空', '地劫'].includes(s))) {
+        fyDetails += `今年流年逢【${palaceAllBad.filter(s => ['陰煞', '天刑', '地空', '地劫'].includes(s)).join('、')}】引動因果氣數，心思容易敏感多慮、易招小人暗害或夢擾；切忌前往磁場陰暗場所，適合安太歲、多行暗德布施、修持心經以轉化磁場；`;
+      } else if (palaceJi) {
+        fyDetails += `今年逢流年【${palaceJi}化忌】，情緒容易鑽牛角尖，遇事當作消除業障的修行功課，多拜佛懺悔、心開運就開；`;
+      } else if (palaceLu || palaceKe) {
+        fyDetails += `今年逢流年【${palaceLu || palaceKe}化${palaceLu ? '祿' : '科'}】，心靈磁場祥和清淨，容易得善知識指引，祈福許願多能心想事成；`;
+      } else {
+        fyDetails += `今年性靈氣場平穩，多孝敬父母長輩、維持正念思維，百善孝為先即是最好的改運之道；`;
+      }
+      if (palaceFlowStars.length > 0) fyDetails += ` 逢【${palaceFlowStars.join('、')}】同度，出入多走光明大道，正氣存內、邪不可干。`;
+      plainSummary = fyDetails;
     }
 
     // 2. 核心提要（Highlights）
@@ -802,9 +983,23 @@ export function analyzeAspect(chart: ChartData, mode: ChartType, aspect: AspectK
     if (mode === 'original') {
       plainSummary = lifeMajor.length > 0 ? '【白話說給你聽】：你是個「' + lifeMajor.map(m => (STAR_PLAIN_DESC[m]?.role || m).replace(/星/g, '')).join('兼具') + '」特質鮮明的人！內在性格有「' + lifeMajor.map(m => STAR_PLAIN_DESC[m]?.strength || '堅定信念').join('，且') + '」，人生只要方向確定、發揮天賦優勢，不畏短期挫折，終能成就一番格局。' : '【白話說給你聽】：你屬於「處事圓融、海納百川、大器晚成」的格局。你最大的優點是適應力極快、能屈能伸，擅長在不同環境與團隊中找到最佳生存之道！';
     } else if (mode === 'big_limit') {
-      plainSummary = '【這十年人生大白話】：此步大限主星得力，是人生承上啟下的核心大運。這十年專注打磨你的核心專業與個人品牌，累積的資源將讓你下一個十年更輕鬆！';
+      let blDetails = `【這十年人生大白話】：此步大限命宮走入本命【${originalPalaceName}】（${branch}宮），坐守【${starNamesStr}】。`;
+      if (palaceLu) blDetails += `逢【${palaceLu}化祿】坐命，這十年間是你人生開疆拓土、名利雙收的黃金十年，心態樂觀進取、四方貴人相迎；`;
+      else if (palaceQuan) blDetails += `逢【${palaceQuan}化權】坐命，這十年間責任使命重大、掌權任重，敢於扛下挑戰就能登上人生新高峰；`;
+      else if (palaceJi) blDetails += `逢【${palaceJi}化忌】坐命，這十年間屬於「蹲下打底、沉潛修心」的磨練期，凡事戒急用忍，蹲得越深跳得越高；`;
+      else blDetails += `這十年間步調沉著穩健，適合打磨核心技能與個人品牌，累積的資源將為未來奠定堅實基石；`;
+      if (palaceAllBad.length > 0) blDetails += ` 宮內會照【${palaceAllBad.join('、')}】煞星磨礪，行事講求穩扎穩打，順境不驕、逆境不餒。`;
+      plainSummary = blDetails;
     } else {
-      plainSummary = '【今年全盤運勢白話】：' + chart.targetYear + '年流年氣場轉換。今年做事講求「穩字當頭、看準再出手」，好運來時大膽把握，遇到卡關時當作沉澱學習，整年運勢漸入佳境！';
+      let fyDetails = `【今年全盤運勢白話】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年命宮進駐本命【${originalPalaceName}】（${branch}宮），坐守【${starNamesStr}】。`;
+      if (palaceLu) fyDetails += `喜逢流年【${palaceLu}化祿】坐命！今年整年運勢如虹、氣場大開，多方機遇主動找上門，大膽行動往往收穫倍增；`;
+      else if (palaceQuan) fyDetails += `逢流年【${palaceQuan}化權】坐命，今年做事雷厲風行、魄力滿分，主動爭取領導主控權，容易成就關鍵突破；`;
+      else if (palaceKe) fyDetails += `逢流年【${palaceKe}化科】坐命，今年名聲聲譽響亮、遇事有貴人指引點化，人際口碑大吉，適合求名求學；`;
+      else if (palaceJi) fyDetails += `逢流年【${palaceJi}化忌】坐命，今年容易有心念打結、壓力焦慮或突發波折，凡事講求「看準再出手、以守為攻」，切忌盲動衝動；`;
+      else fyDetails += `今年整體運勢講求「中道與平衡」，保持平常心按部就班推進，生活工作皆能穩中向好；`;
+      if (palaceFlowStars.length > 0) fyDetails += ` 遇【${palaceFlowStars.join('、')}】同度，遇事放慢半拍、深呼吸三秒，能避開一切浮躁閃失。`;
+      else if (palaceAllBad.length > 0) fyDetails += ` 逢【${palaceAllBad.join('、')}】小磨練，當作鍛鍊筋骨的考驗，整年運勢越挫越勇、漸入佳境！`;
+      plainSummary = fyDetails;
     }
     keyHighlights.push('命坐【' + chart.palaces[chart.originalLifeIndex].earthBranch + '】宮，局屬【' + chart.fiveElementsBureau + '】，命主【' + chart.destinyMaster + '】，身主【' + chart.bodyMaster + '】。');
     if (lifeMajor.length > 0) keyHighlights.push('命宮坐守【' + lifeMajor.join('、') + '】，展現其特有之性格風骨與處事魄力。');
@@ -944,14 +1139,24 @@ ${gradeDesc}
     title = '玄空四化飛星（後天心念、情之所鍾與因果受災點）';
     scopeDesc = '生年四化為「先天業力與配備」，宮干玄空四化則為「後天主觀執著、心力付出與動態連鎖反應」。命宮化忌為命主最看不開的「癡情忌」，化忌所入之宮並非最傷，對宮「被沖破」才是後天受害重災區！';
 
-    // 1. 命宮玄空四化
-    const lifePalaceFlying = calculatePalaceFlyingSihua(chart, chart.originalLifeIndex);
+    // 1. 行運命宮玄空四化 (依據本命/大限/流年命宮)
+    const activeLifeIdx = mode === 'flow_year' ? chart.currentFlowYearIndex : mode === 'big_limit' ? chart.currentBigLimitIndex : chart.originalLifeIndex;
+    const activePalace = chart.palaces[activeLifeIdx];
+    const activePalaceLabel = mode === 'flow_year' ? `${chart.targetYear}年流年命宮【${activePalace.name}】` : mode === 'big_limit' ? `大限命宮【${activePalace.name}】` : `本命命宮`;
+
+    const lifePalaceFlying = calculatePalaceFlyingSihua(chart, activeLifeIdx);
     const lifeTargets = lifePalaceFlying.targets;
 
-    plainSummary = `命主情之所鍾在【${lifeTargets.lu.toPalaceName}】（心甘情願付出${lifeTargets.lu.star}祿），但後天最大執念與盲點落在【${lifeTargets.ji.toPalaceName}】（${lifeTargets.ji.star}癡情忌）。此執著如同雙刃劍，直接沖擊震盪了【${lifeTargets.ji.clashPalaceName}】！`;
+    if (mode === 'flow_year') {
+      plainSummary = `【今年玄空動態因果】：${chart.targetYear}年（${chart.targetYearGanZhi}）流年命宮干【${lifePalaceFlying.fromPalaceStem}】，情之所鍾化祿入【${lifeTargets.lu.toPalaceName}】（心甘情願為其付出${lifeTargets.lu.star}祿）；但今年最大的心力執著與煩惱盲點落在【${lifeTargets.ji.toPalaceName}】（${lifeTargets.ji.star}忌），並反向直沖震盪了【${lifeTargets.ji.clashPalaceName}】！請切記防守受沖的【${lifeTargets.ji.clashPalaceName}】。`;
+    } else if (mode === 'big_limit') {
+      plainSummary = `【這十年玄空動態因果】：此步大限命宮宮干【${lifePalaceFlying.fromPalaceStem}】，大限情之所鍾在【${lifeTargets.lu.toPalaceName}】（付出${lifeTargets.lu.star}祿結善緣）；而這十年間最深層的牽掛執念落在【${lifeTargets.ji.toPalaceName}】（${lifeTargets.ji.star}忌），連帶沖擊受損【${lifeTargets.ji.clashPalaceName}】！`;
+    } else {
+      plainSummary = `命主情之所鍾在【${lifeTargets.lu.toPalaceName}】（心甘情願付出${lifeTargets.lu.star}祿），但後天最大執念與盲點落在【${lifeTargets.ji.toPalaceName}】（${lifeTargets.ji.star}癡情忌）。此執著如同雙刃劍，直接沖擊震盪了【${lifeTargets.ji.clashPalaceName}】！`;
+    }
 
-    keyHighlights.push(`命宮發射干【${lifePalaceFlying.fromPalaceStem}】：祿入【${lifeTargets.lu.toPalaceName}】、權入【${lifeTargets.quan.toPalaceName}】、科入【${lifeTargets.ke.toPalaceName}】、忌入【${lifeTargets.ji.toPalaceName}】`);
-    keyHighlights.push(`致命盲點【癡情忌】：化忌入【${lifeTargets.ji.toPalaceName}】，反向直沖【${lifeTargets.ji.clashPalaceName}】！`);
+    keyHighlights.push(`${activePalaceLabel}發射干【${lifePalaceFlying.fromPalaceStem}】：祿入【${lifeTargets.lu.toPalaceName}】、權入【${lifeTargets.quan.toPalaceName}】、科入【${lifeTargets.ke.toPalaceName}】、忌入【${lifeTargets.ji.toPalaceName}】`);
+    keyHighlights.push(`動態引爆受災點：化忌入【${lifeTargets.ji.toPalaceName}】，反向直沖【${lifeTargets.ji.clashPalaceName}】！`);
 
     detailedExplanations.push(`【命主情之所鍾（命祿入${lifeTargets.lu.toPalaceName}）】：命宮宮干${lifePalaceFlying.fromPalaceStem}使${lifeTargets.lu.star}化祿飛入${lifeTargets.lu.toPalaceName}。講義指出：命祿入之宮，代表命主一生最心甘情願為該領域奉獻，不計代價與回報，在此處最容易結善緣、獲得歡喜心。`);
     detailedExplanations.push(`【命主掌控舞台（命權入${lifeTargets.quan.toPalaceName}）】：${lifeTargets.quan.star}化權飛入${lifeTargets.quan.toPalaceName}。代表命主在${lifeTargets.quan.toPalaceName}展現出最強的支配慾望與企圖心，想要說了算、不服輸，是命主後天奮力爭取主導權的焦點。`);
@@ -1059,6 +1264,37 @@ ${gradeDesc}
     improvements.push('主動表達內心感受與脆弱，多參與正向聚會，打開心門接納他人的善意與支持。');
   }
 
+  // 若為流年或大限模式，在核心提要中明確標示疊宮關係、當前行運四化引動與流曜坐守
+  if (mode === 'flow_year') {
+    keyHighlights.unshift(`📅 流年行運引動：${chart.targetYear}年（${chart.targetYearGanZhi}）流年【${targetPalaceName}】重疊本命【${originalPalaceName}】(${branch}宮)`);
+    if (palaceLu || palaceQuan || palaceKe || palaceJi) {
+      const sihuaList = [
+        palaceLu ? `流祿(${palaceLu})` : '',
+        palaceQuan ? `流權(${palaceQuan})` : '',
+        palaceKe ? `流科(${palaceKe})` : '',
+        palaceJi ? `流忌(${palaceJi})` : ''
+      ].filter(Boolean);
+      keyHighlights.push(`⚡ 流年四化引動：宮內逢${sihuaList.join('、')}`);
+    }
+    if (palaceFlowStars.length > 0) {
+      keyHighlights.push(`🚩 流曜坐守：逢流年【${palaceFlowStars.join('、')}】同度，加強該宮行運波瀾與考驗`);
+    }
+  } else if (mode === 'big_limit') {
+    keyHighlights.unshift(`⏳ 大限運勢引動：大限【${targetPalaceName}】重疊本命【${originalPalaceName}】(${branch}宮)`);
+    if (palaceLu || palaceQuan || palaceKe || palaceJi) {
+      const sihuaList = [
+        palaceLu ? `大限祿(${palaceLu})` : '',
+        palaceQuan ? `大限權(${palaceQuan})` : '',
+        palaceKe ? `大限科(${palaceKe})` : '',
+        palaceJi ? `大限忌(${palaceJi})` : ''
+      ].filter(Boolean);
+      keyHighlights.push(`⚡ 大限四化引動：宮內逢${sihuaList.join('、')}`);
+    }
+    if (palaceFlowStars.length > 0) {
+      keyHighlights.push(`🚩 大限流曜坐守：逢【${palaceFlowStars.join('、')}】同度`);
+    }
+  }
+
   // 針對該宮位玄空飛星與自化，自動補強深度斷語
   if (palaceSihuaSummary.selfSihua.length > 0) {
     keyHighlights.push(`本宮自化：${palaceSihuaSummary.selfSihua.join('、')}`);
@@ -1076,6 +1312,7 @@ ${gradeDesc}
     title,
     scopeDesc,
     targetPalaceName,
+    originalPalaceName,
     targetBranch: branch,
     starsSummary,
     palaceSihuaSummary,

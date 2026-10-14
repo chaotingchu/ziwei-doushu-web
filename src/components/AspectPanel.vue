@@ -88,7 +88,12 @@ function formatPlainContent(text: string, showStars: boolean): string {
               <span class="toggle-label">{{ showStarNames ? '專業星曜模式 (已開啟)' : '切換專業星曜解說' }}</span>
             </button>
           </div>
-          <span class="palace-badge">對應宮位：【{{ analysis.targetPalaceName }}】坐【{{ analysis.targetBranch }}宮】</span>
+          <span class="palace-badge">
+            對應宮位：【{{ mode === 'flow_year' ? '流年' + analysis.targetPalaceName : mode === 'big_limit' ? '大限' + analysis.targetPalaceName : analysis.targetPalaceName }}】坐【{{ analysis.targetBranch }}宮】
+            <template v-if="mode !== 'original' && analysis.originalPalaceName">
+              （重疊本命【{{ analysis.originalPalaceName }}】）
+            </template>
+          </span>
         </div>
         <p class="scope-desc">{{ analysis.scopeDesc }}</p>
       </div>
