@@ -294,7 +294,7 @@ function formatPlainContent(text: string, showStars: boolean): string {
             若對星盤盲點、人生因果或心靈卡關有不理解之處，歡迎點擊下方進入專屬 AI 對話室。此 Google Gem 系統單純連結了《法鼓全集》完整文獻與大數據智慧，能針對您的提問提供客觀、慈悲的正信佛法解讀與生活疏導。
           </p>
           <a
-            href="https://gemini.google.com/gem/14Ctk6nL941tvvbGxQ4FIx5wph_98HtAh?usp=sharing"
+            href="https://gemini.google.com/gem/14Ctk6nL941tvvbGxQ4FIx5wph_98HtAh?usp=sharing&openExternalBrowser=1"
             target="_blank"
             rel="noopener noreferrer"
             class="gem-action-btn"
