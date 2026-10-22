@@ -293,6 +293,10 @@ function formatPlainContent(text: string, showStars: boolean): string {
           <p class="gem-desc">
             若對星盤盲點、人生因果或心靈卡關有不理解之處，歡迎點擊下方進入專屬 AI 對話室。此 Google Gem 系統單純連結了《法鼓全集》完整文獻與大數據智慧，能針對您的提問提供客觀、慈悲的正信佛法解讀與生活疏導。
           </p>
+          <div class="gem-login-hint">
+            <span class="hint-icon">💡</span>
+            <span class="hint-text">溫馨提醒：此為 Google Gemini 官方服務，點擊進入後<strong>需登入個人 Google 帳號</strong>方可免費無限次開啟對話。</span>
+          </div>
           <a
             href="https://gemini.google.com/gem/14Ctk6nL941tvvbGxQ4FIx5wph_98HtAh?usp=sharing&openExternalBrowser=1"
             target="_blank"
@@ -996,7 +1000,25 @@ function formatPlainContent(text: string, showStars: boolean): string {
   font-size: 13px;
   color: #cbd5e1;
   line-height: 1.65;
-  margin: 0 0 14px 0;
+  margin: 0 0 10px 0;
+}
+
+.gem-login-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  font-size: 12.5px;
+  color: #fef08a;
+  line-height: 1.5;
+}
+
+.gem-login-hint strong {
+  color: #fbbf24;
 }
 
 .gem-action-btn {
