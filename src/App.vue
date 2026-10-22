@@ -53,9 +53,15 @@ function handleCalculate(payload: typeof birthParams.value) {
 
 function handleSelectPalace(index: number) {
   selectedPalaceIndex.value = index;
-  // 根據點擊的宮位智能連動切換到對應分析面向
+  // 根據當前盤別（本命/大限/流年）的宮位名稱智能連動切換到對應分析面向
   const palace = displayChart.value.palaces[index];
-  const pName = palace.name;
+  let pName = palace.name;
+  if (currentMode.value === 'big_limit' && palace.bigLimitName) {
+    pName = palace.bigLimitName.replace('大限', '');
+  } else if (currentMode.value === 'flow_year' && palace.flowYearName) {
+    pName = palace.flowYearName.replace('流年', '');
+  }
+
   if (pName === '夫妻宮') currentAspect.value = 'marriage';
   else if (pName === '財帛宮') currentAspect.value = 'wealth';
   else if (pName === '官祿宮') currentAspect.value = 'career';
@@ -71,6 +77,15 @@ function handleSelectPalace(index: number) {
 
 function handleChangeMode(mode: ChartType) {
   currentMode.value = mode;
+  // 切換盤別時，將選中宮位切換到該盤的命宮，並將分析面向重置為整體格局 (命宮)
+  if (mode === 'original') {
+    selectedPalaceIndex.value = baseChart.value.originalLifeIndex;
+  } else if (mode === 'big_limit') {
+    selectedPalaceIndex.value = baseChart.value.currentBigLimitIndex;
+  } else if (mode === 'flow_year') {
+    selectedPalaceIndex.value = baseChart.value.currentFlowYearIndex;
+  }
+  currentAspect.value = 'destiny';
 }
 
 function handleSelectAspect(aspect: AspectKey) {
